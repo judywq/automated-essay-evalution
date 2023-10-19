@@ -21,4 +21,5 @@ Train GPT with a training set of essay and their scores (low/medium/high) based 
 ## Refs
 
 - [Coh-Metrix](https://soletlab.asu.edu/coh-metrix/)
-- 
+- [YT Fine-tuning OpenAI GPT-3.5-turbo.ipynb](https://colab.research.google.com/drive/1ucLzDB_YJmyQe8DFEThqAUlN7N0i7UlP?usp=sharing)
+
