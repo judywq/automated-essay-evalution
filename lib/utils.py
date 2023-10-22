@@ -2,9 +2,11 @@ from lib.essay import Essay
 from collections import defaultdict
 
 
-def level_formatter(level):
-    return f"""{{"level": {level}}}"""
+# def level_formatter(level):
+#     return f"""{{"level": "{level}"}}"""
 
+def level_formatter(level):
+    return level
 
 def convert_essay(essays: list[Essay], system_message=None):
     # Initializing the messages list

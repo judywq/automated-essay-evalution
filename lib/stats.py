@@ -35,13 +35,13 @@ def print_stats(dataset):
         convo_lens.append(num_tokens_from_messages(messages))
         assistant_message_lens.append(num_assistant_tokens_from_messages(messages))
 
-    print("Num examples missing system message:", n_missing_system)
-    print("Num examples missing user message:", n_missing_user)
+    n_missing_system and print("Num examples missing system message:", n_missing_system)
+    n_missing_user and print("Num examples missing user message:", n_missing_user)
     print_distribution(n_messages, "num_messages_per_example")
     print_distribution(convo_lens, "num_total_tokens_per_example")
     print_distribution(assistant_message_lens, "num_assistant_tokens_per_example")
     n_too_long = sum(l > 4096 for l in convo_lens)
-    print(f"\n{n_too_long} examples may be over the 4096 token limit, they will be truncated during fine-tuning")
+    n_too_long and print(f"\n{n_too_long} examples may be over the 4096 token limit, they will be truncated during fine-tuning")
 
     n_epochs = TARGET_EPOCHS
     n_train_examples = len(dataset)
