@@ -1,7 +1,8 @@
 import os
 import datetime
 
-uploaded_file_id_fn = 'file-id-eassy-test-1-2023-10-22-16-44-03.json'
+uploaded_file_id_fn = 'file-id-eassy-test-1-2023-10-22-19-23-05.json'
+
 
 date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 model_suffix = 'eassy-test-1'
@@ -23,6 +24,7 @@ dataset_test_filename = os.path.join(output_root, 'dataset', 'test.jsonl')
 
 file_id_filename = os.path.join(output_root, 'ids', f'file-id-{model_suffix}-{date_str}.json')
 model_id_filename = os.path.join(output_root, 'ids', f'model-id-{model_suffix}-{date_str}.json')
+job_id_filename = os.path.join(output_root, 'ids', f'job-id-{model_suffix}-{date_str}.json')
 uploaded_file_id_filename = os.path.join(output_root, 'ids', uploaded_file_id_fn)
 
 num_per_group = {
@@ -31,13 +33,13 @@ num_per_group = {
     'test': 10
 }
 
-# num_per_group = {
-#     'train': 10,
-#     'val': 2,
-#     'test': 10
-# }
+num_per_group = {
+    'train': 10,
+    'val': 2,
+    'test': 10
+}
 
-num_of_essays_per_prompt = 5
+num_of_essays_per_prompt = 1
 
 
 system_message = """You are a language expert who evaluate user's input with 3 levels (low/medium/high), based on the following rubrics:
