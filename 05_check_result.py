@@ -1,33 +1,19 @@
+import os
 import json
 import openai
+from icecream import ic
 from lib.utils import convert_essay, format_check
 from lib.stats import print_stats
 import setting
 
 
 def main():
-    file_ids = json.load(open(setting.uploaded_file_id_filename, "r"))
-    print(file_ids)
-    start_training(
-        training_file_id=file_ids["training_file_id"],
-        validation_file_id=file_ids["validation_file_id"],
-        suffix_name=setting.model_suffix,
-    )
+    job_id_filename = os.path.join(setting.output_root, 'ids', 'job-id-eassy-test-1-2023-10-22-19-24-49.json')
+    resp = json.load(open(job_id_filename, "r"))
+    job_id = resp["id"]
+    print(job_id)
+    check_training(job_id)
 
-
-def start_training(training_file_id, validation_file_id, suffix_name):
-    # Create a Fine Tuning Job
-    response = openai.FineTuningJob.create(
-        training_file=training_file_id,
-        validation_file=validation_file_id,
-        model="gpt-3.5-turbo",
-        suffix=suffix_name,
-    )
-
-    print(response)
-    job_id = response["id"]
-    json.dump(response, open(setting.job_id_filename, "w"))
-    return job_id
 
 def check_training(job_id):
     response = openai.FineTuningJob.retrieve(job_id)
@@ -39,7 +25,9 @@ def check_training(job_id):
     events.reverse()
 
     for event in events:
-        print(event["message"])
+        ic(event["message"])
+    
+    return
 
     response = openai.FineTuningJob.retrieve(job_id)
     fine_tuned_model_id = response["fine_tuned_model"]
