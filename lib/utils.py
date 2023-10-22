@@ -1,7 +1,43 @@
+from lib.essay import Essay
 from collections import defaultdict
 
 
-def convert_conversation(conversation_str, system_message=None):
+def level_formatter(level):
+    return f"""{{"level": {level}}}"""
+
+
+def convert_essay(essays: list[Essay], system_message=None):
+    # Initializing the messages list
+    messages = []
+
+    # Including the system message if provided
+    if system_message:
+        messages.append({
+            "role": "system",
+            "content": system_message
+        })
+    # Iterating through the lines and formatting the messages
+    for essay in essays:
+        # Formatting the message
+        message = {
+            "role": "user",
+            "content": essay.text
+        }
+        messages.append(message)
+        message = {
+            "role": "assistant",
+            "content": level_formatter(essay.level.value)
+        }
+        messages.append(message)
+
+    # Creating the final output dictionary
+    output_dict = {
+        "messages": messages
+    }
+    return output_dict
+
+
+def convert_conversation_samatha(conversation_str, system_message=None):
     conversation_str = conversation_str['conversation']
     # Splitting the conversation string into individual lines
     lines = conversation_str.split('\n\n')
@@ -74,3 +110,11 @@ def format_check(dataset):
             format_errors["example_missing_assistant_message"] += 1
     return format_errors
 
+
+# Yield successive n-sized 
+# chunks from l. 
+def divide_chunks(l, n): 
+      
+    # looping till length l 
+    for i in range(0, len(l), n):  
+        yield l[i:i + n] 

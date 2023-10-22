@@ -4,10 +4,12 @@ import pandas as pd
 import json
 
 
-def save_to_jsonl(conversations, file_path):
+def save_to_jsonl(dataset, file_path):
+    path = os.path.dirname(file_path)
+    os.makedirs(path, exist_ok=True)
     with open(file_path, 'w') as file:
-        for conversation in conversations:
-            json_line = json.dumps(conversation)
+        for record in dataset:
+            json_line = json.dumps(record)
             file.write(json_line + '\n')
 
 
