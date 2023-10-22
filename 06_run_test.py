@@ -11,6 +11,10 @@ import setting
 
 
 def main():
+    # system_message = setting.system_message
+    system_message = setting.system_message_short
+    limit_num = 30
+    
     resp = json.load(open(setting.job_id_filename, "r"))
     fine_tuned_model_id = resp["fine_tuned_model"]
     print(fine_tuned_model_id)
@@ -21,9 +25,9 @@ def main():
 
     result = []
     for index, essay in enumerate(essays):
-        result.append(run_model(fine_tuned_model_id, essay))
+        result.append(run_model(fine_tuned_model_id, essay, system_message))
 
-        if index + 1 >= 300:
+        if index + 1 >= limit_num:
             break
         
         if index % 10 == 0:
@@ -40,10 +44,10 @@ def main():
     print("Done! Success rate:", success_rate)
 
 
-def run_model(fine_tuned_model_id, essay):
+def run_model(fine_tuned_model_id, essay, system_message):
     # Generating using the new model
     test_messages = []
-    test_messages.append({"role": "system", "content": setting.system_message_short})
+    test_messages.append({"role": "system", "content": system_message})
     test_messages.append({"role": "user", "content": essay.text})
     # ic(test_messages)
 
