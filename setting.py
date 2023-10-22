@@ -1,11 +1,11 @@
 import os
 import datetime
 
-uploaded_file_id_fn = 'file-id-eassy-test-1-2023-10-22-19-23-05.json'
+uploaded_file_id_fn = 'file-id-eassy-test-2-2023-10-22-21-20-33.json'
 
 
 date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-model_suffix = 'eassy-test-1'
+model_suffix = 'eassy-test-2'
 
 input_root= 'data/input/AWE'
 index_path = os.path.join(input_root, 'index', 'index.csv')
@@ -24,23 +24,25 @@ dataset_test_filename = os.path.join(output_root, 'dataset', 'test.jsonl')
 
 file_id_filename = os.path.join(output_root, 'ids', f'file-id-{model_suffix}-{date_str}.json')
 model_id_filename = os.path.join(output_root, 'ids', f'model-id-{model_suffix}-{date_str}.json')
-job_id_filename = os.path.join(output_root, 'ids', f'job-id-{model_suffix}-{date_str}.json')
+job_id_filename = os.path.join(output_root, 'ids', f'job-id.json')
 uploaded_file_id_filename = os.path.join(output_root, 'ids', uploaded_file_id_fn)
+test_result_filename = os.path.join(output_root, 'results', f'test-result-{model_suffix}-{date_str}.xlsx')
 
 num_per_group = {
     'train': 30,
-    'val': 10,
+    'val': 5,
     'test': 10
 }
 
-num_per_group = {
-    'train': 10,
-    'val': 2,
-    'test': 10
-}
+# num_per_group = {
+#     'train': 10,
+#     'val': 2,
+#     'test': 10
+# }
 
 num_of_essays_per_prompt = 1
 
+system_message_short = """You are a language expert who evaluate user's input with 3 levels (low/medium/high), based on the pre-trained rubrics."""
 
 system_message = """You are a language expert who evaluate user's input with 3 levels (low/medium/high), based on the following rubrics:
 An essay with a "high" level accomplishes at least the following:

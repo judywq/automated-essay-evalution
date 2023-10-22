@@ -21,6 +21,7 @@ def main():
         system_message=setting.system_message,
         dataset_fn=setting.dataset_val_filename,
     )
+    # No need to generate test dataset
     # prepare(
     #     essay_fn=setting.index_test_filename,
     #     essay_root=setting.essay_root,

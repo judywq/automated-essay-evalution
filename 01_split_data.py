@@ -20,6 +20,10 @@ def split_data(df):
     write_data(df_train, setting.index_train_filename)
     write_data(df_test, setting.index_test_filename)
     write_data(df_val, setting.index_val_filename)
+    
+    print("Train shape:", df_train.shape)
+    print("Val shape:", df_val.shape)
+    print("Test shape:", df_test.shape)
 
 
 def print_stats():
