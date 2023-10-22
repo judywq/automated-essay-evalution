@@ -9,6 +9,7 @@ spacy-readability = "*"
 icecream = "*"
 openai = "*"
 tiktoken = "*"
+openpyxl = "*"
 
 [dev-packages]
 
