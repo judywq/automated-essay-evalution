@@ -1,0 +1,1 @@
+index_path = 'data/input/index.csv'

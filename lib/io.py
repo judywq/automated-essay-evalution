@@ -26,7 +26,7 @@ def write_data(df: pd.DataFrame, filename: str):
     os.makedirs(path, exist_ok=True)
     _type = parse_file_type(filename)
     if _type == FileType.CSV:
-        df.to_csv(filename)
+        df.to_csv(filename, index=None)
     elif _type == FileType.EXCEL:
         df.to_excel(filename, index=None)
 
