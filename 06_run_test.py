@@ -73,6 +73,7 @@ def run_model(fine_tuned_model_id, essay, system_message):
         "ok": ok,
         "level": essay.level.value,
         "leve_resp": level_resp,
+        "filename": essay.fn,
         "prompt": essay.prompt,
         "raw_response": raw_response,
         "text": essay.text,
