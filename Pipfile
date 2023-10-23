@@ -10,6 +10,7 @@ icecream = "*"
 openai = "*"
 tiktoken = "*"
 openpyxl = "*"
+tenacity = "*"
 
 [dev-packages]
 

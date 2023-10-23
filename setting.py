@@ -1,10 +1,19 @@
 import os
 import datetime
 
+DEFAULT_LOG_LEVEL = "INFO"
+# DEFAULT_LOG_LEVEL = "DEBUG"
+
+
+# DEFAULT_MODEL = 'gpt-3.5-turbo'
+DEFAULT_MODEL = 'gpt-4'
+
+REQUEST_TIMEOUT_SECS = 60
+
 global_run_id = '2023-10-23-update-rubrics'
 model_suffix = 'eassy-test-4'
 
-# date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 input_root= 'data/input/AWE'
 index_path = os.path.join(input_root, 'index', 'index.csv')
@@ -24,7 +33,7 @@ dataset_test_filename = os.path.join(output_root, 'dataset', 'test.jsonl')
 
 file_id_filename = os.path.join(output_root, 'ids', f'file-id.json')
 job_id_filename = os.path.join(output_root, 'ids', f'job-id.json')
-test_result_filename = os.path.join(output_root, 'results', f'test-result.xlsx')
+test_result_filename = os.path.join(output_root, 'results', f'test-result-{date_str}.xlsx')
 
 base_model_id = 'gpt-3.5-turbo'
 # base_model_id = 'ft:gpt-3.5-turbo-0613:waseda-university:eassy-test-2:8CTA9Ik1'
@@ -64,3 +73,6 @@ An essay at "low" level may reveal one or more of the following weaknesses:
 * Inappropriate or insufficient exemplifications, explanations, or details to support or illustrate generalizations.
 * Many inappropriate choice of words, word forms, or serious and frequent errors in sentence structure or usage.
 """
+
+
+# GPT
