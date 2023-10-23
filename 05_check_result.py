@@ -3,8 +3,7 @@ import json
 from time import sleep
 import openai
 from icecream import ic
-from lib.utils import convert_essay, format_check
-from lib.stats import print_stats
+from lib.io import save_to_json
 import setting
 
 
@@ -19,7 +18,7 @@ def main():
 def check_training(job_id):
     response = openai.FineTuningJob.retrieve(job_id)
     print(response)
-    json.dump(response, open(setting.job_id_filename, "w"))
+    save_to_json(response, setting.job_id_filename)
 
     while response["status"] in ("running", "validating_files"):
         event_resp = openai.FineTuningJob.list_events(id=job_id, limit=30)
@@ -38,7 +37,7 @@ def check_training(job_id):
     print(response)
     fine_tuned_model_id = response["fine_tuned_model"]
     print("\nFine-tuned model id:", fine_tuned_model_id)
-    json.dump(response, open(setting.job_id_filename, "w"))
+    save_to_json(response, setting.job_id_filename)
     return fine_tuned_model_id
 
 

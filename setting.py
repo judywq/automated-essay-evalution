@@ -1,18 +1,17 @@
 import os
 import datetime
 
-uploaded_file_id_fn = 'file-id-eassy-test-2-2023-10-22-21-20-33.json'
+global_run_id = '2023-10-23-more-validation'
+model_suffix = 'eassy-test-3'
 
-
-date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-model_suffix = 'eassy-test-2'
+# date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 input_root= 'data/input/AWE'
 index_path = os.path.join(input_root, 'index', 'index.csv')
 
 essay_root = os.path.join(input_root, 'responses', 'original')
 
-output_root = 'data/output'
+output_root = os.path.join('data/output', global_run_id)
 
 index_train_filename = os.path.join(output_root, 'index', 'train.csv')
 index_val_filename = os.path.join(output_root, 'index', 'val.csv')
@@ -22,15 +21,16 @@ dataset_train_filename = os.path.join(output_root, 'dataset', 'train.jsonl')
 dataset_val_filename = os.path.join(output_root, 'dataset', 'val.jsonl')
 dataset_test_filename = os.path.join(output_root, 'dataset', 'test.jsonl')
 
-file_id_filename = os.path.join(output_root, 'ids', f'file-id-{model_suffix}-{date_str}.json')
-model_id_filename = os.path.join(output_root, 'ids', f'model-id-{model_suffix}-{date_str}.json')
+file_id_filename = os.path.join(output_root, 'ids', f'file-id.json')
 job_id_filename = os.path.join(output_root, 'ids', f'job-id.json')
-uploaded_file_id_filename = os.path.join(output_root, 'ids', uploaded_file_id_fn)
-test_result_filename = os.path.join(output_root, 'results', f'test-result-{model_suffix}-{date_str}.xlsx')
+test_result_filename = os.path.join(output_root, 'results', f'test-result.xlsx')
+
+# base_model_id = 'gpt-3.5-turbo'
+base_model_id = 'ft:gpt-3.5-turbo-0613:waseda-university:eassy-test-2:8CTA9Ik1'
 
 num_per_group = {
     'train': 30,
-    'val': 5,
+    'val': 10,
     'test': 10
 }
 
