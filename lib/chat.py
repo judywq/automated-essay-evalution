@@ -16,14 +16,10 @@ class MyBotWrapper:
     def run(self, inputs):
         prompt = self.parser.compose_prompt(inputs=inputs)
         logger.debug(f"PROMPT: {prompt}")
-        if setting.OFFLINE_CHATGPT:
-            res = self.parser.get_sample_response(prompt=prompt)
-            logger.debug(f"PARSED RESPONSE: {res}")
-        else:
-            response = self.get_completion(prompt=prompt)
-            logger.debug(f"RAW RESPONSE: {response}")
-            res = self.parser.parse_response(prompt=prompt, response=response)
-            logger.debug(f"PARSED RESPONSE: {res}")
+        response = self.get_completion(prompt=prompt)
+        logger.debug(f"RAW RESPONSE: {response}")
+        res = self.parser.parse_response(prompt=prompt, response=response)
+        logger.debug(f"PARSED RESPONSE: {res}")
         return res
 
     def get_completion(self, prompt):
