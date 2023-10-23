@@ -1,13 +1,13 @@
 import json
 import openai
-from lib.utils import convert_essay, format_check
-from lib.stats import print_stats
+from lib.io import save_to_json
 import setting
 
 
 def main():
-    file_ids = json.load(open(setting.uploaded_file_id_filename, "r"))
+    file_ids = json.load(open(setting.file_id_filename, "r"))
     print(file_ids)
+
     start_training(
         training_file_id=file_ids["training_file_id"],
         validation_file_id=file_ids["validation_file_id"],
@@ -20,13 +20,13 @@ def start_training(training_file_id, validation_file_id, suffix_name):
     response = openai.FineTuningJob.create(
         training_file=training_file_id,
         validation_file=validation_file_id,
-        model="gpt-3.5-turbo",
+        model=setting.base_model_id,
         suffix=suffix_name,
     )
 
     print(response)
     job_id = response["id"]
-    json.dump(response, open(setting.job_id_filename, "w"))
+    save_to_json(response, setting.job_id_filename)
     return job_id
 
 

@@ -13,6 +13,13 @@ def save_to_jsonl(dataset, file_path):
             file.write(json_line + '\n')
 
 
+def save_to_json(json_obj, file_path, indent=4):
+    path = os.path.dirname(file_path)
+    os.makedirs(path, exist_ok=True)
+    with open(file_path, 'w') as file:
+        json.dump(json_obj, file, indent=indent)
+
+
 def read_data(path) -> pd.DataFrame:
     df = None
     _type = parse_file_type(path)

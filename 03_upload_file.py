@@ -1,5 +1,6 @@
 import json
 import openai
+from lib.io import save_to_json
 import setting
 
 
@@ -26,7 +27,7 @@ def upload_data(training_file_name, validation_file_name):
         "validation_file_id": validation_file_id,
     }
     print(file_ids)
-    json.dump(file_ids, open(setting.file_id_filename, "w"))
+    save_to_json(file_ids, setting.file_id_filename)
     return file_ids
 
 

@@ -13,7 +13,7 @@ import setting
 def main():
     # system_message = setting.system_message
     system_message = setting.system_message_short
-    limit_num = 30
+    limit_num = 300
     
     resp = json.load(open(setting.job_id_filename, "r"))
     fine_tuned_model_id = resp["fine_tuned_model"]
