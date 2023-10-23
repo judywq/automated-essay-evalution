@@ -17,14 +17,14 @@ def main():
         essay_root=setting.essay_root,
         prompt_root=setting.essay_prompt_root,
     )
-    bot_evaluation = MyBotWrapper(parser=EssayEvaluationParser(), temperature=0)
+    bot = MyBotWrapper(parser=EssayEvaluationParser(), temperature=0)
     
     results = []
     for index, essay in enumerate(essays):
         logger.info(f"Processing essay {index + 1}/{len(essays)}...")
         ic(essay)
         
-        res = bot_evaluation.run(inputs={
+        res = bot.run(inputs={
             "system_message": setting.system_message,
             "essay": essay,
         })
