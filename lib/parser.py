@@ -1,7 +1,10 @@
 import json
+import re
 from lib.essay import Essay
 
 import logging
+
+from lib.utils import prompt_formatter
 logger = logging.getLogger(__name__)
 
 
@@ -26,10 +29,13 @@ class ParserBase():
             inputs (dict): any inputs that are needed to compose the prompt
 
         Returns:
-            str: prompt for ChatGPT
+            dict: prompt for ChatGPT
         """
         self.inputs = inputs
-        return ""
+        return {
+            "system_content": "",
+            "user_content": ""
+        }
     
     def parse_response(self, prompt, response):
         """Parse the response from ChatGPT into desired format
@@ -82,18 +88,21 @@ class ParserBase():
 
 
 class EssayEvaluationParser(ParserBase):
-    """Parse the result of essay evaluation from ChatGPT
+    """Parse the result of essay evaluation from official models
     """
     
     def compose_prompt(self, inputs):
         super().compose_prompt(inputs=inputs)
         system_message = inputs['system_message']
         essay: Essay = inputs['essay']
-        return f"""{system_message}
+        user_content = f"""{system_message}
 Please return your evaluation and feedback in JSON format of {{ "level": ..., "reasoning": ...}}
 The essay prompt is: `{essay.prompt_text}`
 The essay is: `{essay.text}`
 """
+        return {
+            "user_content": user_content,
+        }
     
     def parse_response(self, prompt, response):
         res = super().parse_response(prompt=prompt, response=response)
@@ -115,7 +124,7 @@ The essay is: `{essay.text}`
                     "reasoning": obj.get('reasoning', ''),
                     "essay_prompt": essay.prompt,
                     "essay": essay.text,
-                    "gpt_prompt": prompt,
+                    "gpt_prompt": prompt['user_content'],
                     "raw_response": response,
                     },
             }
@@ -124,85 +133,41 @@ The essay is: `{essay.text}`
                 **res,
                 "success": False,
             }
-    
 
 
-class RationalParser(ParserBase):
-    """Test the rationality of several words in a sentence
-    
-    inputs={"words": ["account", "apple"], "sentence": "I have an ______ with the bank."}
-    
-    return {"success": True, "result": {"account": True, "apple": False}, "good_candidates": ["apple"], "others": ["account"], "words": ["account", "bank"], "sentence": "I have an ______ with the bank."}
+class EssayEvaluationWithTunedModelParser(ParserBase):
+    """Parse the result of essay evaluation from fine-tuned model
     """
-    task_name = "Rationality Test"
+
+    pat = re.compile(f"(high|medium|low|none)")    
     
     def compose_prompt(self, inputs):
         super().compose_prompt(inputs=inputs)
-        keyword = inputs.get('keyword')
-        candidates = inputs.get('candidates')
-        words_with_comma = ", ".join(set(str(w) for w in candidates))
-        sentence = inputs.get('sentence')
-        
-        prompt = f'''You are an English teacher at a Japanese university and you are creating distractors for vocabulary multiple-choice cloze questions for your students. 
-In this multiple choice cloze question stem: "{sentence}" 
-A list of possible distractors include "{words_with_comma}". 
-Please provide feedback in terms of syntactic appropriateness and contextual/semantic sense-making of the distractors in the completed sentences. 
-Return only the following result in JSON format to me:
-{{
-  "word": {{"syntax": true, "semantics": true}},
-  "word": {{"syntax": true, "semantics": false}}
-}}
-
-To provide you with more instructions on judgement, consider the the question stem: "Birds _____ in the sky." The list of distractors include "swim, beat". The distractor "swim" is syntactically valid because there will be no grammar errors when it is filled into the blank, but it does not make sense since birds "fly" in the sky, not "swim". The distractor "beat" is syntactically inappropriate because "beat" is a transitive verb and requires an object after it. There will be  grammar errors when it is filled into the blank. It also does not make much sense or is incomprehensible. Return only the following result in JSON format to me:
-{{
-  "swim": {{"syntax": true, "semantics": false}},
-  "beat": {{"syntax": false, "semantics": false}}
-}}'''
-# Reply with json object only without any notes. 
-# while using correct articles and prepositions, \
-
-        return prompt
-
+        system_content = inputs['system_message']
+        essay: Essay = inputs['essay']
+        user_content = prompt_formatter(essay)
+        return {
+            "system_content": system_content,
+            "user_content": user_content,
+        }
+    
     def parse_response(self, prompt, response):
         res = super().parse_response(prompt=prompt, response=response)
-        try:
-            obj = json.loads(response)
-            others = []
-            good_candidates = []
-            candidates = self.inputs['candidates']
-            for k, v in obj.items():
-                candidate = next(filter(lambda w: str(w) == k, candidates), None)
-                if not candidate:
-                    logger.warning(f"Cannot find candidate '{k}' in response: {candidates}")
-                    continue
-                if v['syntax'] and not v['semantics']:
-                    # the word is a good candidate as a distractor 
-                    #   if it is syntactically correct but semantically wrong
-                    good_candidates.append(candidate)
-                else:
-                    others.append(candidate)
-            return {
-                **res,
-                "result": obj,
-                "good_candidates": good_candidates,
-                "others": others,
-            }
-        except json.decoder.JSONDecodeError as e:
-            return {
-                **res,
-                "success": False,
-            }
-        
-    
-    def get_sample_response(self, prompt):
+        essay: Essay = self.inputs['essay']
+        response_norm = response.lower()
+        match = self.pat.search(response_norm)
+        level_resp = match.group(0) if match else ""
+
         return {
-            "success": True,
-            "others": ["account"],
-            "good_candidates": ["bank"],
-            "response": {"account": True, "bank": False}, 
-            "words": ["account", "bank"], 
-            "sentence": "I have an ______ with the bank."
+            **res,
+            "result": {
+                "ok": level_resp == essay.level.value,
+                "level": essay.level.value,
+                "level_resp": level_resp,
+                "filename": essay.fn,
+                "essay_prompt": essay.prompt,
+                "essay": essay.text,
+                "raw_response": response,
+                },
         }
-
-
-
+    
