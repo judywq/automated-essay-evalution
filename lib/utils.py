@@ -5,8 +5,14 @@ from collections import defaultdict
 # def level_formatter(level):
 #     return f"""{{"level": "{level}"}}"""
 
+def prompt_formatter(essay: Essay):
+    return f"""Essay prompt: `{essay.prompt_text}`
+Essay content: `{essay.text}`"""
+
+
 def level_formatter(level):
     return level
+
 
 def convert_essay(essays: list[Essay], system_message=None):
     # Initializing the messages list
@@ -23,7 +29,7 @@ def convert_essay(essays: list[Essay], system_message=None):
         # Formatting the message
         message = {
             "role": "user",
-            "content": essay.text
+            "content": prompt_formatter(essay)
         }
         messages.append(message)
         message = {

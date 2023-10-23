@@ -10,6 +10,7 @@ def main():
     prepare(
         essay_fn=setting.index_train_filename,
         essay_root=setting.essay_root,
+        prompt_root=setting.essay_prompt_root,
         chunk_size=setting.num_of_essays_per_prompt,
         system_message=setting.system_message,
         dataset_fn=setting.dataset_train_filename,
@@ -17,6 +18,7 @@ def main():
     prepare(
         essay_fn=setting.index_val_filename,
         essay_root=setting.essay_root,
+        prompt_root=setting.essay_prompt_root,
         chunk_size=setting.num_of_essays_per_prompt,
         system_message=setting.system_message,
         dataset_fn=setting.dataset_val_filename,
@@ -31,8 +33,8 @@ def main():
     # )
 
 
-def prepare(essay_fn, essay_root, chunk_size, system_message, dataset_fn):
-    essay_list = Essay.load_essays(essay_fn, essay_root)
+def prepare(essay_fn, essay_root, prompt_root, chunk_size, system_message, dataset_fn):
+    essay_list = Essay.load_essays(essay_fn, essay_root, prompt_root)
     ic(len(essay_list))
     dataset = []
     for chunk in divide_chunks(essay_list, chunk_size):

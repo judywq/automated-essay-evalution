@@ -7,6 +7,7 @@ from icecream import ic
 import pandas as pd
 from lib.essay import Essay
 from lib.io import write_data
+from lib.utils import prompt_formatter
 import setting
 
 
@@ -20,7 +21,9 @@ def main():
     print(fine_tuned_model_id)
 
     essays = Essay.load_essays(
-        index_file=setting.index_test_filename, essay_root=setting.essay_root
+        index_file=setting.index_test_filename, 
+        essay_root=setting.essay_root,
+        prompt_root=setting.essay_prompt_root,
     )
 
     result = []
@@ -48,7 +51,7 @@ def run_model(fine_tuned_model_id, essay, system_message):
     # Generating using the new model
     test_messages = []
     test_messages.append({"role": "system", "content": system_message})
-    test_messages.append({"role": "user", "content": essay.text})
+    test_messages.append({"role": "user", "content": prompt_formatter(essay)})
     # ic(test_messages)
 
     response = openai.ChatCompletion.create(

@@ -15,11 +15,13 @@ class Level(Enum):
 
 class Essay:
     TRUNCATE_LEN = 50
+    prompt_mapping = {}
 
-    def __init__(self, fn, text, prompt="", level=Level.NONE) -> None:
+    def __init__(self, fn, text, prompt="", prompt_text="", level=Level.NONE) -> None:
         self.fn = fn
         self.text = text
         self.prompt = prompt
+        self.prompt_text = prompt_text
         self.level = level
 
     def __str__(self) -> str:
@@ -28,7 +30,12 @@ class Essay:
             if len(self.text) > self.TRUNCATE_LEN
             else self.text
         )
-        return f"Essay({self.fn}, {self.prompt}, {self.level.value}, {txt})"
+        prompt_txt = (
+            (self.prompt_text[: self.TRUNCATE_LEN] + "..")
+            if len(self.prompt_text) > self.TRUNCATE_LEN
+            else self.prompt_text
+        )
+        return f"Essay({self.fn}, {self.prompt}, {self.level.value},  P[{prompt_txt}], T[{txt})]"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -47,25 +54,22 @@ class Essay:
                 level = Level.NONE
         self._level = level
 
-    # @classmethod
-    # def load_essays(cls, folder_path, ext='.txt'):
-    #     essays = []
-    #     for filename in os.listdir(folder_path):
-    #         if filename.endswith(ext):
-    #             with open(os.path.join(folder_path, filename)) as file:
-    #                 e = cls(filename, file.read())
-    #                 essays.append(e)
-    #     return essays
-
     @classmethod
-    def load_essays(cls, index_file, essay_root):
+    def load_essays(cls, index_file, essay_root, prompt_root):
         def create_object(row):
             with open(os.path.join(essay_root, row["Filename"])) as file:
                 text = file.read().strip()
+            
+            prompt_text = cls.prompt_mapping.get(row["Prompt"], None)
+            if not prompt_text:
+                with open(os.path.join(prompt_root, row["Prompt"] + ".txt")) as file:
+                    prompt_text = file.read().strip()
+                    cls.prompt_mapping[row["Prompt"]] = prompt_text
             obj = cls(
                 row["Filename"],
                 text=text,
                 prompt=row["Prompt"],
+                prompt_text=prompt_text,
                 level=row["Score Level"],
             )
             return obj
