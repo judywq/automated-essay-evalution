@@ -12,6 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def main():
+    start_from = 1
     num_limits = 1000
     
     essays = Essay.load_essays(
@@ -28,6 +29,9 @@ def main():
     
     results = []
     for index, essay in enumerate(essays):
+        if index + 1 < start_from:
+            continue
+        
         logger.info(f"Processing essay {index + 1}/{len(essays)}...")
         ic(essay)
         
@@ -37,11 +41,13 @@ def main():
             "essay": essay,
         })
         
-        # ic(res)
-        results.append(res['result'])
+        if res['success']:
+            results.append(res['result'])
 
-        df_data = pd.DataFrame(results)
-        write_data(df_data, setting.test_result_filename)
+            df_data = pd.DataFrame(results)
+            write_data(df_data, setting.test_result_filename)
+        else:
+            logger.error(f"Failed to process essay {index + 1}/{len(essays)}...")
 
         if index + 1 >= num_limits:
             break
@@ -53,11 +59,13 @@ def main():
     df_data = pd.DataFrame(results)
     write_data(df_data, setting.test_result_filename)
 
-    success_rate = df_data["ok"].sum() / len(df_data)
-    with open(setting.test_result_filename + ".txt", "a") as f:
-        f.write(f"Success rate: {success_rate}\n")
-    
-    print("Done! Success rate:", success_rate)
+    if "ok" in df_data.columns:
+        success_rate = df_data["ok"].sum() / len(df_data)
+        with open(setting.test_result_filename + ".txt", "a") as f:
+            f.write(f"Success rate: {success_rate}\n")
+        print("Success rate:", success_rate)
+
+    print("Done! #Results:", len(results))
 
 if __name__ == "__main__":
     setup_log()
