@@ -11,6 +11,7 @@ openai = "*"
 tiktoken = "*"
 openpyxl = "*"
 tenacity = "*"
+aiolimiter = "*"
 
 [dev-packages]
 
