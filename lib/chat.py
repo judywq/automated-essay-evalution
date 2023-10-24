@@ -18,7 +18,8 @@ class MyBotWrapper:
         prompt = self.parser.compose_prompt(inputs=inputs)
         logger.debug(f"PROMPT: {prompt}")
         response = self.get_completion(
-            user_content=prompt["user_content"], system_content=prompt["system_content"]
+            user_content=prompt.get("user_content"),
+            system_content=prompt.get("system_content")
         )
         logger.debug(f"RAW RESPONSE: {response}")
         res = self.parser.parse_response(prompt=prompt, response=response)
