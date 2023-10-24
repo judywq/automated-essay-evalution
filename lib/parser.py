@@ -135,6 +135,52 @@ The essay is: `{essay.text}`
             }
 
 
+class EssayEvaluationScoreParser(ParserBase):
+    """Parse the result of essay evaluation from official models
+    """
+    
+    def compose_prompt(self, inputs):
+        super().compose_prompt(inputs=inputs)
+        system_message = inputs['system_message']
+        essay: Essay = inputs['essay']
+        user_content = f"""{system_message}
+Please return your evaluation and feedback in JSON format of {{ "score": ..., "reasoning": ...}}
+The essay prompt is: `{essay.prompt_text}`
+The essay is: `{essay.text}`
+"""
+        return {
+            "user_content": user_content,
+        }
+    
+    def parse_response(self, prompt, response):
+        res = super().parse_response(prompt=prompt, response=response)
+        essay: Essay = self.inputs['essay']
+        try:
+            obj = json.loads(response)
+            
+            if 'score' not in obj:
+                logger.warning(f"Cannot find 'score' in response: {obj}")
+            if 'reasoning' not in obj:
+                logger.warning(f"Cannot find 'reasoning' in response: {obj}")
+            
+            return {
+                **res,
+                "result": {
+                    "level": essay.level.value,
+                    "score_resp": obj.get('score', ''),
+                    "reasoning": obj.get('reasoning', ''),
+                    "essay_prompt": essay.prompt,
+                    "essay": essay.text,
+                    "gpt_prompt": prompt['user_content'],
+                    "raw_response": response,
+                    },
+            }
+        except json.decoder.JSONDecodeError as e:
+            return {
+                **res,
+                "success": False,
+            }
+
 class EssayEvaluationWithTunedModelParser(ParserBase):
     """Parse the result of essay evaluation from fine-tuned model
     """
