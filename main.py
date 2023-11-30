@@ -1,8 +1,10 @@
 import json
-import openai
+from openai import OpenAI
 from lib.utils import convert_conversation, format_check
 from lib.stats import print_stats
 
+
+client = OpenAI()
 system_message = """You are Samantha a helpful and charming assistant who can help with a variety of tasks. You are friendly and often flirt"""
 
 def main():
@@ -40,12 +42,12 @@ def main():
 
 
 def upload_data(training_file_name, validation_file_name):
-    training_response = openai.File.create(
+    training_response = client.files.create(
         file=open(training_file_name, "rb"), purpose="fine-tune"
     )
     training_file_id = training_response["id"]
 
-    validation_response = openai.File.create(
+    validation_response = client.files.create(
         file=open(validation_file_name, "rb"), purpose="fine-tune"
     )
     validation_file_id = validation_response["id"]
@@ -60,7 +62,7 @@ def upload_data(training_file_name, validation_file_name):
 
 def start_training(training_file_id, validation_file_id, suffix_name):
     # Create a Fine Tuning Job
-    response = openai.FineTuningJob.create(
+    response = client.fine_tuning.jobs.create(
         training_file=training_file_id,
         validation_file=validation_file_id,
         model="gpt-3.5-turbo",
@@ -71,11 +73,11 @@ def start_training(training_file_id, validation_file_id, suffix_name):
 
     print(response)
 
-    response = openai.FineTuningJob.retrieve(job_id)
+    response = client.fine_tuning.jobs.retrieve(job_id)
     print(response)
 
 
-    response = openai.FineTuningJob.list_events(id=job_id, limit=50)
+    response = client.fine_tuning.jobs.list_events(id=job_id, limit=50)
 
     events = response["data"]
     events.reverse()
@@ -84,7 +86,7 @@ def start_training(training_file_id, validation_file_id, suffix_name):
         print(event["message"])
 
 
-    response = openai.FineTuningJob.retrieve(job_id)
+    response = client.fine_tuning.jobs.retrieve(job_id)
     fine_tuned_model_id = response["fine_tuned_model"]
 
     print(response)
@@ -101,7 +103,7 @@ def run_model(fine_tuned_model_id):
 
     print(test_messages)
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=fine_tuned_model_id, messages=test_messages, temperature=0, max_tokens=500
     )
     print(response["choices"][0]["message"]["content"])

@@ -1,8 +1,9 @@
 import json
-import openai
+from openai import OpenAI
 from lib.io import save_to_json
 import setting
 
+client = OpenAI()
 
 def main():
     file_ids = upload_data(
@@ -12,15 +13,15 @@ def main():
 
 
 def upload_data(training_file_name, validation_file_name):
-    training_response = openai.File.create(
+    training_response = client.files.create(
         file=open(training_file_name, "rb"), purpose="fine-tune"
     )
-    training_file_id = training_response["id"]
+    training_file_id = training_response.id
 
-    validation_response = openai.File.create(
+    validation_response = client.files.create(
         file=open(validation_file_name, "rb"), purpose="fine-tune"
     )
-    validation_file_id = validation_response["id"]
+    validation_file_id = validation_response.id
 
     file_ids = {
         "training_file_id": training_file_id,
