@@ -18,6 +18,7 @@ class ParserBase():
     failure = ""
     result_key = "result"
     task_name = "<Abstract>"
+    response_format = "text" # "text" | "json_object"
     
     def __init__(self):
         self.inputs = None
@@ -90,6 +91,7 @@ class ParserBase():
 class EssayEvaluationParser(ParserBase):
     """Parse the result of essay evaluation from official models
     """
+    response_format = "json_object"
     
     def compose_prompt(self, inputs):
         super().compose_prompt(inputs=inputs)

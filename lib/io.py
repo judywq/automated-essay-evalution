@@ -14,10 +14,12 @@ def save_to_jsonl(dataset, file_path):
 
 
 def save_to_json(json_obj, file_path, indent=4):
+    data = dict(json_obj)
+    del data['hyperparameters']
     path = os.path.dirname(file_path)
     os.makedirs(path, exist_ok=True)
     with open(file_path, 'w') as file:
-        json.dump(json_obj, file, indent=indent)
+        json.dump(data, file, indent=indent)
 
 
 def read_data(path) -> pd.DataFrame:

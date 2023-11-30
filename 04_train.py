@@ -1,7 +1,10 @@
 import json
-import openai
+from openai import OpenAI
 from lib.io import save_to_json
 import setting
+
+
+client = OpenAI()
 
 
 def main():
@@ -17,7 +20,7 @@ def main():
 
 def start_training(training_file_id, validation_file_id, suffix_name):
     # Create a Fine Tuning Job
-    response = openai.FineTuningJob.create(
+    response = client.fine_tuning.jobs.create(
         training_file=training_file_id,
         validation_file=validation_file_id,
         model=setting.base_model_id,
@@ -25,7 +28,7 @@ def start_training(training_file_id, validation_file_id, suffix_name):
     )
 
     print(response)
-    job_id = response["id"]
+    job_id = response.id
     save_to_json(response, setting.job_id_filename)
     return job_id
 
