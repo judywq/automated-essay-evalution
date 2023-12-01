@@ -1,6 +1,7 @@
 import json
 import re
 from lib.essay import Essay
+import setting
 
 import logging
 
@@ -84,6 +85,23 @@ class ParserBase():
             text = text[:-1]
         return text
 
+    @staticmethod
+    def remove_surrounding_apostrophe(text:str) -> str:
+        """Remove surrounding apostrophe from a string
+
+        Args:
+            text (str): string possibly with surrounding apostrophe, such as "```json ... ```"
+
+        Returns:
+            str: string without surrounding apostrophe
+        """
+        # TODO: replace this with regex
+        if text.startswith("```json\n"):
+            text = text[8:]
+        if text.endswith("```"):
+            text = text[:-3]
+        return text
+
     def get_sample_response(self, prompt):
         return ""
 
@@ -98,7 +116,8 @@ class EssayEvaluationParser(ParserBase):
         system_message = inputs['system_message']
         essay: Essay = inputs['essay']
         user_content = f"""{system_message}
-Please return your evaluation and feedback in JSON format of {{ "level": ..., "reasoning": ...}}
+Please return your evaluation and feedback in JSON format of {{ "level": ..., "reasoning": ...}}.
+Please do not include markdown formatting in your response.
 The essay prompt is: `{essay.prompt_text}`
 The essay is: `{essay.text}`
 """
@@ -125,6 +144,8 @@ The essay is: `{essay.text}`
                     "level_resp": obj.get('level', ''),
                     "reasoning": obj.get('reasoning', ''),
                     "filename": essay.fn,
+                    "essay_form_id": essay.form_id,
+                    "essay_item_id": essay.item_id,
                     "essay_prompt": essay.prompt,
                     "essay": essay.text,
                     "gpt_prompt": prompt['user_content'],
@@ -141,13 +162,15 @@ The essay is: `{essay.text}`
 class EssayEvaluationScoreParser(ParserBase):
     """Parse the result of essay evaluation from official models
     """
+    response_format = "json_object" # "text" | "json_object"
     
     def compose_prompt(self, inputs):
         super().compose_prompt(inputs=inputs)
         system_message = inputs['system_message']
         essay: Essay = inputs['essay']
         user_content = f"""{system_message}
-Please return your evaluation and feedback in JSON format of {{ "score": ..., "reasoning": ...}}
+Please return your evaluation and feedback in JSON format of {{ "score": ..., "reasoning": ...}}.
+Please do not include markdown formatting in your response.
 The essay prompt is: `{essay.prompt_text}`
 The essay is: `{essay.text}`
 """
@@ -159,6 +182,7 @@ The essay is: `{essay.text}`
         res = super().parse_response(prompt=prompt, response=response)
         essay: Essay = self.inputs['essay']
         try:
+            response = self.remove_surrounding_apostrophe(response)
             obj = json.loads(response)
             
             if 'score' not in obj:
@@ -166,14 +190,22 @@ The essay is: `{essay.text}`
             if 'reasoning' not in obj:
                 logger.warning(f"Cannot find 'reasoning' in response: {obj}")
             
+            gpt_score = obj.get('score', -1)
+            diff_lte_05 = abs(essay.score - gpt_score) <= 0.5
+            equal = abs(essay.score - gpt_score) <= 0.01
+            
             return {
                 **res,
                 "result": {
-                    "level": essay.level.value,
-                    "score_resp": obj.get('score', ''),
+                    "Adjacent agreement": diff_lte_05,
+                    "Absolute agreement": equal,
+                    "ETS Score": essay.score,
+                    "GPT Score": gpt_score,
                     "reasoning": obj.get('reasoning', ''),
                     "filename": essay.fn,
-                    "essay_prompt": essay.prompt,
+                    "essay_form_id": essay.form_id,
+                    "essay_item_id": essay.item_id,
+                    "essay_prompt": essay.prompt_text,
                     "essay": essay.text,
                     "gpt_prompt": prompt['user_content'],
                     "raw_response": response,
@@ -204,18 +236,25 @@ class EssayEvaluationWithTunedModelParser(ParserBase):
     def parse_response(self, prompt, response):
         res = super().parse_response(prompt=prompt, response=response)
         essay: Essay = self.inputs['essay']
-        response_norm = response.lower()
-        match = self.pat.search(response_norm)
-        level_resp = match.group(0) if match else ""
+        try:
+            gpt_score = float(response)
+        except ValueError:
+            gpt_score = -1
+            
+        diff_lte_05 = abs(essay.score - gpt_score) <= 0.5
+        equal = abs(essay.score - gpt_score) <= 0.01
 
         return {
             **res,
             "result": {
-                "ok": level_resp == essay.level.value,
-                "level": essay.level.value,
-                "level_resp": level_resp,
+                "Adjacent agreement": diff_lte_05,
+                "Absolute agreement": equal,
+                "ETS Score": essay.score,
+                "GPT Score": gpt_score,
                 "filename": essay.fn,
-                "essay_prompt": essay.prompt,
+                "essay_form_id": essay.form_id,
+                "essay_item_id": essay.item_id,
+                "essay_prompt": essay.prompt_text,
                 "essay": essay.text,
                 "raw_response": response,
                 },

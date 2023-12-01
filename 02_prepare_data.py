@@ -8,33 +8,28 @@ import setting
 
 def main():
     prepare(
-        essay_fn=setting.index_train_filename,
-        essay_root=setting.essay_root,
-        prompt_root=setting.essay_prompt_root,
+        input_file=setting.index_train_filename,
         chunk_size=setting.num_of_essays_per_prompt,
         system_message=setting.system_message,
         dataset_fn=setting.dataset_train_filename,
     )
     prepare(
-        essay_fn=setting.index_val_filename,
-        essay_root=setting.essay_root,
-        prompt_root=setting.essay_prompt_root,
+        input_file=setting.index_val_filename,
         chunk_size=setting.num_of_essays_per_prompt,
         system_message=setting.system_message,
         dataset_fn=setting.dataset_val_filename,
     )
     # No need to generate test dataset
     # prepare(
-    #     essay_fn=setting.index_test_filename,
-    #     essay_root=setting.essay_root,
+    #     input_file=setting.index_test_filename,
     #     chunk_size=setting.num_of_essays_per_prompt,
     #     system_message=setting.system_message,
     #     dataset_fn=setting.dataset_test_filename,
     # )
 
 
-def prepare(essay_fn, essay_root, prompt_root, chunk_size, system_message, dataset_fn):
-    essay_list = Essay.load_essays(essay_fn, essay_root, prompt_root)
+def prepare(input_file, chunk_size, system_message, dataset_fn):
+    essay_list = Essay.load_essays(input_file)
     ic(len(essay_list))
     dataset = []
     for chunk in divide_chunks(essay_list, chunk_size):
@@ -50,6 +45,7 @@ def prepare(essay_fn, essay_root, prompt_root, chunk_size, system_message, datas
         return
 
     print_stats(dataset)
+
 
 
 if __name__ == "__main__":

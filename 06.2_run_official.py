@@ -6,20 +6,18 @@ from lib.io import write_data
 from lib.chat import MyBotWrapper
 from lib.essay import Essay
 from lib.parser import EssayEvaluationParser, EssayEvaluationScoreParser
-from lib.utils import setup_log
+from lib.utils import setup_log, calc_and_write_success_rate
 
 import logging
 logger = logging.getLogger(__name__)
 
 def main():
     start_from = 1
-    num_limits = 1000
+    num_limits = 999
     
-    essays = Essay.load_essays(
-        index_file=setting.index_test_filename,
-        essay_root=setting.essay_root,
-        prompt_root=setting.essay_prompt_root,
-    )
+    essays = Essay.load_essays(index_file=setting.index_test_filename)
+    test_result_filename = setting.test_result_official_filename
+    
     bot = MyBotWrapper(
         # parser=EssayEvaluationParser(), 
         parser=EssayEvaluationScoreParser(),
@@ -45,7 +43,7 @@ def main():
             results.append(res['result'])
 
             df_data = pd.DataFrame(results)
-            write_data(df_data, setting.test_result_filename)
+            write_data(df_data, test_result_filename)
         else:
             logger.error(f"Failed to process essay {index + 1}/{len(essays)}...")
 
@@ -57,15 +55,12 @@ def main():
             sleep(10)
     
     df_data = pd.DataFrame(results)
-    write_data(df_data, setting.test_result_filename)
+    write_data(df_data, test_result_filename)
 
-    if "ok" in df_data.columns:
-        success_rate = df_data["ok"].sum() / len(df_data)
-        with open(setting.test_result_filename + ".txt", "a") as f:
-            f.write(f"Success rate: {success_rate}\n")
-        print("Success rate:", success_rate)
+    calc_and_write_success_rate(test_result_filename, threshold=0.5)
 
     print("Done! #Results:", len(results))
+    
 
 if __name__ == "__main__":
     setup_log()
