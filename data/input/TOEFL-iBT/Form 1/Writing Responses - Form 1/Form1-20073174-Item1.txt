@@ -1,0 +1,7 @@
+There are three main theories explaining how birds are navigating during their flights, but none of such theories gives us a full story.
+
+For example, a theory stating that birds navigate in reference to different celestrial objects does not explain quite common cases when birds succesfully navigate in absebce of the Sun or stars, for example, when the sky is cloudy.
+
+A theory that birds navigare by landmarks (i.e, rivers or mountains) also does not give a universal explanation. In particular, his theory is silent about situations when a bird realeased in an unknow place manages to find the way back to its nest.
+
+Finally, a "compass" theory of the bird's navigation is not exhaustive as well. A compass does not give sufficient data for navigating through long distances, since there at least two additional elements are needed, namely, starting point and a distance which may not be taken from a compass itself.
