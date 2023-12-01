@@ -23,7 +23,7 @@ def start_training(training_file_id, validation_file_id, suffix_name):
     response = client.fine_tuning.jobs.create(
         training_file=training_file_id,
         validation_file=validation_file_id,
-        model=setting.base_model_id,
+        model=setting.fine_tuning_base_model_id,
         suffix=suffix_name,
     )
 

@@ -1,6 +1,8 @@
 from enum import Enum
 import os
 import logging
+
+import setting
 from lib.io import read_data
 
 logger = logging.getLogger(__name__)
@@ -17,12 +19,15 @@ class Essay:
     TRUNCATE_LEN = 50
     prompt_mapping = {}
 
-    def __init__(self, fn, text, prompt="", prompt_text="", level=Level.NONE) -> None:
+    def __init__(self, fn, text, score, form_id=None, item_id=None, prompt="", prompt_text="", level=Level.NONE) -> None:
         self.fn = fn
         self.text = text
+        self.score = score
         self.prompt = prompt
         self.prompt_text = prompt_text
         self.level = level
+        self.form_id = form_id
+        self.item_id = item_id
 
     def __str__(self) -> str:
         txt = (
@@ -35,7 +40,7 @@ class Essay:
             if len(self.prompt_text) > self.TRUNCATE_LEN
             else self.prompt_text
         )
-        return f"Essay({self.fn}, {self.prompt}, {self.level.value},  P[{prompt_txt}], T[{txt})]"
+        return f"Essay({self.fn},  S[{self.score}],  Q[{prompt_txt}], A[{txt})]"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -55,25 +60,52 @@ class Essay:
         self._level = level
 
     @classmethod
-    def load_essays(cls, index_file, essay_root, prompt_root):
+    def load_essays(cls, index_file):
         def create_object(row):
-            with open(os.path.join(essay_root, row["Filename"])) as file:
+            response_fn = get_response_fn(row)
+            with open(response_fn) as file:
                 text = file.read().strip()
             
-            prompt_text = cls.prompt_mapping.get(row["Prompt"], None)
-            if not prompt_text:
-                with open(os.path.join(prompt_root, row["Prompt"] + ".txt")) as file:
-                    prompt_text = file.read().strip()
-                    cls.prompt_mapping[row["Prompt"]] = prompt_text
+            prompt_text = get_prompt_text(row)
+
             obj = cls(
-                row["Filename"],
+                response_fn,
                 text=text,
-                prompt=row["Prompt"],
+                score=get_score(row),
                 prompt_text=prompt_text,
-                level=row["Score Level"],
+                form_id=row[setting.column_form],
+                item_id=row[setting.column_item],
             )
             return obj
 
         df = read_data(index_file)
         objs = df.apply(create_object, axis=1).tolist()
         return objs
+
+
+def get_response_fn(row):
+    response_fn = setting.response_file_path_tempalte.format(
+        form_id=row[setting.column_form],
+        response_id=row[setting.column_response_id],
+        item_id=row[setting.column_item],
+    )
+    return response_fn
+
+
+prompt_mapping = {}
+
+def get_prompt_text(row):
+    prompt_fn = setting.prompt_file_path_tempalte.format(
+        form_id=row[setting.column_form],
+        item_id=row[setting.column_item],
+    )
+    prompt_text = prompt_mapping.get(prompt_fn, None)
+    if not prompt_text:
+        with open(prompt_fn) as file:
+            prompt_text = file.read().strip()
+            prompt_mapping[prompt_fn] = prompt_text
+    return prompt_text
+
+
+def get_score(row):
+    return row[setting.column_score]

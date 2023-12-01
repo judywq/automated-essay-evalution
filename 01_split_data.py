@@ -4,18 +4,42 @@ from lib.io import read_data, write_data
 
 
 def main():
-    df = read_data(setting.index_path)
-    split_data(df)
+    df = read_all_data()
+    # train_on_form = 1
+    # train_on_form = 2
+    train_on_form = None
+    split_data(df, train_on_form=train_on_form)
     print("Done!")
 
 
-def split_data(df):
+def read_all_data():
+    form1_fn = setting.index_file_path_template.format(form_id=1)
+    form2_fn = setting.index_file_path_template.format(form_id=2)
+
+    df1 = read_data(form1_fn)
+    df2 = read_data(form2_fn)
+
+    df1[setting.column_form] = 1
+    df2[setting.column_form] = 2
+    df = pd.concat([df1, df2], ignore_index=True)
+    
+    df[setting.column_item] = setting.item_id
+    return df
+
+
+def split_data(df, train_on_form=None):
+    """Split data into train/val/test sets
+
+    Args:
+        df (pd.DataFrame): input data
+        train_on_form (int, optional): train only on form N. Defaults to None.
+    """
     df_copy = df.copy()
-    df_train = sample(df_copy, num_per_group=setting.num_per_group["train"])
+    df_train = sample(df_copy, num_per_group=setting.num_per_group["train"], filter_form=train_on_form)
     df_copy.drop(df_train.index, inplace=True)
     df_test = sample(df_copy, num_per_group=setting.num_per_group["test"])
     df_copy.drop(df_test.index, inplace=True)
-    df_val = sample(df_copy, num_per_group=setting.num_per_group["val"])
+    df_val = sample(df_copy, num_per_group=setting.num_per_group["val"], filter_form=train_on_form)
 
     write_data(df_train, setting.index_train_filename)
     write_data(df_test, setting.index_test_filename)
@@ -27,42 +51,25 @@ def split_data(df):
 
 
 def print_stats():
-    df = read_data(setting.index_path)
-    print(df[(df["Score Level"] == "low")]["Language"].value_counts())
-    print(df[(df["Score Level"] == "medium")]["Language"].value_counts())
-    print(df[(df["Score Level"] == "high")]["Language"].value_counts())
-
-    print(df.groupby(["Prompt", "Score Level"], group_keys=False).count())
+    df = read_all_data()
+    print(df[setting.column_score].value_counts())
 
 
-def sample(df: pd.DataFrame, num_per_group=30):
-    # Define a function to sample records from each language within a group
-    def sample_group(group):
-        df_base = group.copy()
-        sampled_records = []
-        count = 0
-        while count < num_per_group:
-            tmp = df_base.groupby("Language", group_keys=False).apply(
-                lambda x: x.sample(n=1)
-            )
-            if tmp.shape[0] + count > num_per_group:
-                tmp = tmp.sample(num_per_group - count)
-            count += tmp.shape[0]
-            sampled_records.append(tmp)
-            df_base = df_base.drop(pd.concat(sampled_records).index, errors="ignore")
-        return pd.concat(sampled_records)
+def sample(df: pd.DataFrame, num_per_group=10, filter_form=None) -> pd.DataFrame:
+    # sample n records from each group (if n > group size, take all records in the group)
+    def sample_group(group, num_elements):
+        return group.sample(min(num_elements, len(group)), replace=False)
+    
+    if filter_form:
+        df = df[df[setting.column_form] == filter_form]
 
-    # Group by 'Prompt', 'Score Level', then sample records from each language within each group
     sampled_data = df.groupby(
-        ["Prompt", "Score Level"], group_keys=False, as_index=False
-    ).apply(sample_group)
+        [setting.column_score], group_keys=False, as_index=False
+    ).apply(sample_group, num_elements=num_per_group)
 
-    # print(sampled_data.groupby(['Prompt', 'Score Level'], group_keys=False).count())
-    # print(sampled_data.groupby(['Prompt', 'Score Level', 'Language']).count())
-    # Print the sampled data
-    # print(sampled_data[(sampled_data['Score Level'] == 'low') & (sampled_data['Prompt'] == 'P2')]['Language'].value_counts())
     return sampled_data
 
 
 if __name__ == "__main__":
     main()
+    # print_stats()

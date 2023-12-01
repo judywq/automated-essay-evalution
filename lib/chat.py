@@ -39,7 +39,9 @@ class MyBotWrapper:
             messages=messages,
             temperature=self.temperature,  # this is the degree of randomness of the model's output
             timeout=setting.REQUEST_TIMEOUT_SECS,
-            response_format={ "type": self.parser.response_format },
+            
+            # comment out for now, not supported for gpt-3.5
+            # response_format={ "type": self.parser.response_format },
         )
         return response.choices[0].message.content
 

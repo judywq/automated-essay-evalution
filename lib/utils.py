@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import datetime
 from lib.essay import Essay
 from collections import defaultdict
@@ -13,7 +14,7 @@ def get_date_str():
     return now.strftime("%Y-%m-%d_%H-%M-%S")
 
 
-# def level_formatter(level):
+# def score_formatter(level):
 #     return f"""{{"level": "{level}"}}"""
 
 def prompt_formatter(essay: Essay):
@@ -21,8 +22,8 @@ def prompt_formatter(essay: Essay):
 Essay content: `{essay.text}`"""
 
 
-def level_formatter(level):
-    return level
+def score_formatter(score):
+    return f'{score:.1f}'
 
 
 def convert_essay(essays: list[Essay], system_message=None):
@@ -45,7 +46,7 @@ def convert_essay(essays: list[Essay], system_message=None):
         messages.append(message)
         message = {
             "role": "assistant",
-            "content": level_formatter(essay.level.value)
+            "content": score_formatter(essay.score)
         }
         messages.append(message)
 
@@ -137,6 +138,19 @@ def divide_chunks(l, n):
     # looping till length l 
     for i in range(0, len(l), n):  
         yield l[i:i + n] 
+
+
+def calc_and_write_success_rate(result_fn):
+    df_data = pd.read_excel(result_fn)
+    content = ""
+    for col_name in ["Adjacent agreement", "Absolute agreement"]:
+        if col_name in df_data.columns:
+            rate = df_data[col_name].sum() / len(df_data)
+            content += f"{col_name}: {rate}\n"
+    
+    with open(result_fn + ".txt", "a") as f:
+        f.write(content)
+    print(content)
 
 
 def setup_log(level=None, log_path='./log/txt', need_file=True):
