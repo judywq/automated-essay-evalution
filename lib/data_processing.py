@@ -79,6 +79,6 @@ class DataSplitter:
         if num_per_group < 0:
             return df
 
-        sampled_data = pd.concat([group.sample(min(num_per_group, self.max_num_per_group[key])) 
+        sampled_data = pd.concat([group.sample(min(num_per_group, self.max_num_per_group[key], len(group))) 
                                   for key, group in df.groupby(setting.column_score)])
         return sampled_data
