@@ -1,11 +1,8 @@
 import json
-from time import sleep
-import pandas as pd
 from lib.chat import MyBotWrapper
+from lib.model_runner import run_model
 from lib.parser import EssayEvaluationWithTunedModelParser
-from lib.essay import Essay
-from lib.io import write_data
-from lib.utils import setup_log, calc_and_write_success_rate
+from lib.utils import setup_log
 import setting
 
 import logging
@@ -14,15 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    index_file = setting.index_test_filename
     # system_message = setting.system_message
     system_message = setting.system_message_short
-    num_limits = 999
+    test_result_filename = setting.test_result_tuned_filename
 
     resp = json.load(open(setting.job_id_filename, "r"))
     fine_tuned_model_id = resp["fine_tuned_model"]
     print(fine_tuned_model_id)
-
-    essays = Essay.load_essays(index_file=setting.index_test_filename)
 
     bot = MyBotWrapper(
         parser=EssayEvaluationWithTunedModelParser(),
@@ -30,30 +26,12 @@ def main():
         temperature=0,
     )
 
-    results = []
-    for index, essay in enumerate(essays):
-        logger.info(f"Processing essay {index + 1}/{len(essays)}...")
-
-        res = bot.run(inputs={"system_message": system_message, "essay": essay})
-        result = res["result"]
-        results.append(result)
-
-        if index + 1 >= num_limits:
-            break
-
-        if index % 10 == 0:
-            df = pd.DataFrame(results)
-            write_data(df, setting.test_result_filename)
-
-        if index % 60 == 0:
-            sleep(10)
-
-    df = pd.DataFrame(results)
-    write_data(df, setting.test_result_filename)
-    
-    calc_and_write_success_rate(setting.test_result_filename, threshold=0.5)
-    
-    print("Done!")
+    run_model(
+        index_file=index_file,
+        bot=bot,
+        system_message=system_message,
+        test_result_filename=test_result_filename,
+    )
 
 
 if __name__ == "__main__":

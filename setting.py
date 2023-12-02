@@ -1,7 +1,16 @@
 import os
 import datetime
 
-global_run_id = '2023-12-01-fine-grained-data-trained-on-form1'
+train_on_form = 1
+# train_on_form = 2
+# train_on_form = None
+
+tof_name = train_on_form if train_on_form else 'all'
+
+# integer_score_only = False
+integer_score_only = True
+
+global_run_id = f'2023-12-02-fixed-data-length-ToF[{tof_name}]-IntOnly[{integer_score_only}]'
 model_suffix = 'eassy-all'
 test_result_prefix = 'finetuned-gpt-3.5'
 
@@ -13,7 +22,7 @@ official_model_gpt_3_5_turbo = 'gpt-3.5-turbo'
 official_model_gpt_4 = 'gpt-4'
 official_model_gpt_4_turbo = 'gpt-4-1106-preview'
 DEFAULT_MODEL = official_model_gpt_3_5_turbo
-DEFAULT_MODEL = official_model_gpt_4_turbo
+# DEFAULT_MODEL = official_model_gpt_4_turbo
 
 REQUEST_TIMEOUT_SECS = 60
 
@@ -55,7 +64,7 @@ item_id = 2
 num_per_group = {
     'train': 10,
     'val': 3,
-    'test': 10
+    'test': -1
 }
 
 # num_per_group = {
@@ -66,31 +75,11 @@ num_per_group = {
 
 num_of_essays_per_prompt = 1
 
-system_message_short = """You are a language expert who evaluates test-takers' argumentative essays on 3 levels (low/medium/high), based on the pre-trained rubrics."""
+extra_limitation = "" if integer_score_only else "(with 0.5 increments)"
 
-system_message_level = """You are a language expert who evaluates test-takers' argumentative essays on 3 levels (low/medium/high), based on the given essay prompt and rubrics. The prompt will be given together with the essay later, and the rubrics are as follows:
-An essay at "high" level accomplishes the following:
-* Effectively addresses the topic and task well.
-* Is well organized and well developed, using clearly appropriate and sufficient explanations, exemplifications, and/or details.
-* Displays unity, progression, and coherence.
-* Demonstrates facility in the use of language, showcasing syntactic variety, appropriate word choice in a good range of vocabulary, and idiomaticity. While minor lexical or grammatical errors might be present, they do not interfere with meaning.
+system_message_short = f"""As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 {extra_limitation}, based on the pre-trained rubrics."""
 
-An essay at "medium" level accomplishes the following:
-* Generally addresses the topic and task.
-* Offers moderately developed explanations, exemplifications, and/or details, and there are moments where elaboration is lacking or slightly off-target.
-* Displays unity, progression, and coherence for the most part, but the connection of ideas is occasionally obscured or lack smooth transitions.
-* Demonstrates the ability to use certain syntactic structures and vocabulary, but the range of these structures and vocabulary is limited. There are occasional lexical or grammatical errors leading to lack of clarity or obscured meaning.
-
-An essay at "low" level may reveal one or more of the following weaknesses:
-* Underdevelopment in response to the topic and task or serious disorganization.
-* Inadequate organization or connection of ideas, with little or no detail, irrelevant specifics, or questionable responsiveness to the task.
-* Inappropriate or insufficient exemplifications, explanations, or details to support or illustrate generalizations.
-* Many inappropriate choice of words, word forms, or serious and frequent errors in sentence structure or usage.
-"""
-
-system_message_short = """As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 (with 0.5 increments), based on the pre-trained rubrics."""
-
-system_message_score = """As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 (with 0.5 increments) \
+system_message_score = f"""As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 {extra_limitation}\
 based on the rubrics below.
 
 5 points:

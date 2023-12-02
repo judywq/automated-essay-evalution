@@ -6,14 +6,14 @@ from lib.io import save_to_jsonl
 import setting
 
 
-def main():
-    prepare(
+def prepare_datasets():
+    _prepare(
         input_file=setting.index_train_filename,
         chunk_size=setting.num_of_essays_per_prompt,
         system_message=setting.system_message,
         dataset_fn=setting.dataset_train_filename,
     )
-    prepare(
+    _prepare(
         input_file=setting.index_val_filename,
         chunk_size=setting.num_of_essays_per_prompt,
         system_message=setting.system_message,
@@ -28,7 +28,7 @@ def main():
     # )
 
 
-def prepare(input_file, chunk_size, system_message, dataset_fn):
+def _prepare(input_file, chunk_size, system_message, dataset_fn):
     essay_list = Essay.load_essays(input_file)
     ic(len(essay_list))
     dataset = []
@@ -49,4 +49,4 @@ def prepare(input_file, chunk_size, system_message, dataset_fn):
 
 
 if __name__ == "__main__":
-    main()
+    prepare_datasets()

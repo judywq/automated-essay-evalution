@@ -143,7 +143,7 @@ def divide_chunks(l, n):
 def calc_and_write_success_rate(result_fn):
     df_data = pd.read_excel(result_fn)
     content = ""
-    for col_name in ["Adjacent agreement", "Absolute agreement"]:
+    for col_name in ["Agreement or not"]:
         if col_name in df_data.columns:
             rate = df_data[col_name].sum() / len(df_data)
             content += f"{col_name}: {rate}\n"

@@ -13,10 +13,7 @@ def save_to_jsonl(dataset, file_path):
             file.write(json_line + '\n')
 
 
-def save_to_json(json_obj, file_path, indent=4):
-    data = dict(json_obj)
-    if 'hyperparameters' in data:
-        del data['hyperparameters']
+def save_to_json(data: dict, file_path, indent=4):
     path = os.path.dirname(file_path)
     os.makedirs(path, exist_ok=True)
     with open(file_path, 'w') as file:
