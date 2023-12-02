@@ -14,7 +14,7 @@ def main():
     index_file = setting.index_test_filename
     # system_message = setting.system_message
     system_message = setting.system_message_short
-    test_result_filename = setting.test_result_tuned_filename
+    test_result_filename = setting.test_result_finetuned_filename
 
     resp = json.load(open(setting.job_id_filename, "r"))
     fine_tuned_model_id = resp["fine_tuned_model"]
