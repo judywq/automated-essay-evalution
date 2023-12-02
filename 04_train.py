@@ -28,9 +28,11 @@ def start_training(training_file_id, validation_file_id, suffix_name):
     )
 
     print(response)
-    job_id = response.id
-    save_to_json(response, setting.job_id_filename)
-    return job_id
+
+    data = dict(response)
+    if 'hyperparameters' in data:
+        del data['hyperparameters']
+    save_to_json(data, setting.job_id_filename)
 
 
 if __name__ == "__main__":

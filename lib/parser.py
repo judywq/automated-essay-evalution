@@ -189,16 +189,14 @@ The essay is: `{essay.text}`
                 logger.warning(f"Cannot find 'score' in response: {obj}")
             if 'reasoning' not in obj:
                 logger.warning(f"Cannot find 'reasoning' in response: {obj}")
-            
-            gpt_score = obj.get('score', -1)
-            diff_lte_05 = abs(essay.score - gpt_score) <= 0.5
-            equal = abs(essay.score - gpt_score) <= 0.01
-            
+            agreement = calc_agreement(
+                ground_truth_score=essay.score, gpt_score=gpt_score
+            )
+
             return {
                 **res,
                 "result": {
-                    "Adjacent agreement": diff_lte_05,
-                    "Absolute agreement": equal,
+                    **agreement,
                     "ETS Score": essay.score,
                     "GPT Score": gpt_score,
                     "reasoning": obj.get('reasoning', ''),
@@ -240,15 +238,13 @@ class EssayEvaluationWithTunedModelParser(ParserBase):
             gpt_score = float(response)
         except ValueError:
             gpt_score = -1
-            
-        diff_lte_05 = abs(essay.score - gpt_score) <= 0.5
-        equal = abs(essay.score - gpt_score) <= 0.01
+
+        agreement = calc_agreement(ground_truth_score=essay.score, gpt_score=gpt_score)
 
         return {
             **res,
             "result": {
-                "Adjacent agreement": diff_lte_05,
-                "Absolute agreement": equal,
+                **agreement,
                 "ETS Score": essay.score,
                 "GPT Score": gpt_score,
                 "filename": essay.fn,
@@ -257,6 +253,34 @@ class EssayEvaluationWithTunedModelParser(ParserBase):
                 "essay_prompt": essay.prompt_text,
                 "essay": essay.text,
                 "raw_response": response,
-                },
+            },
         }
-    
+
+
+def calc_agreement(ground_truth_score: float | int, gpt_score: float | int) -> dict:
+    """Calculate the agreement between ground truth score and GPT score
+
+    Args:
+        ground_truth_score (float|int): ground truth score
+        gpt_score (float|int): score from GPT
+
+    Returns:
+        dict: a dict of agreement type and whether the two scores agree
+        {
+            "Agreement or not": bool,
+            "Agreement type": "0" | "1-high" | "1-low" | "2"
+        }
+    """
+    diff = gpt_score - ground_truth_score
+    is_agree = abs(diff) < 0.51
+
+    agreement_type = "0"
+    if abs(diff) < 0.01:
+        agreement_type = "2"
+    elif abs(diff) < 0.51:
+        agreement_type = "1-high" if diff > 0 else "1-low"
+
+    return {
+        "Agreement or not": is_agree,
+        "Agreement type": agreement_type,
+    }
