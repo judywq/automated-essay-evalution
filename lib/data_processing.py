@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from collections import defaultdict
 import pandas as pd
@@ -303,14 +304,7 @@ class ResponseParser:
                         gpt_prompt = message["content"]
                         break
                 raw_response = json_data[1]["choices"][0]["message"]["content"]
-                try:
-                    res = self.parse_raw_response(raw_response)
-                except json.decoder.JSONDecodeError as e:
-                    logger.error(f"Cannot parse response in {input_file}\n {raw_response}")
-                    res = {
-                        "score": -1,
-                        "reasoning": "",
-                    }
+                res = self.parse_raw_response(raw_response)
                 essay_data = json_data[2]["essay"]
                 agreement = calc_agreement(ground_truth_score=essay_data["ETS Score"], gpt_score=res["score"])
                 row_data = {
@@ -327,9 +321,34 @@ class ResponseParser:
     
     @classmethod
     def parse_raw_response(cls, raw_response):
+        score_pattern = re.compile(r'"score":\s*"?(\d+(?:\.\d+)?)"?')
+        reasoning_pattern = re.compile(r'"reasoning":\s*"(.*)"', re.DOTALL)
+        
         raw_response = cls.remove_surrounding_apostrophe(raw_response)
-        res = json.loads(raw_response)
-        res["score"] = float(res["score"])
+        try:
+            res = json.loads(raw_response)
+            res["score"] = float(res["score"])
+        except json.decoder.JSONDecodeError as e:
+            match = score_pattern.findall(raw_response)
+            score = -1
+            if match:
+                score = float(match[0])
+            else:
+                logger.error(f"Cannot parse response \n {raw_response}")
+                res = {
+                    "score": -1,
+                    "reasoning": "",
+                }
+                return res
+
+            match = reasoning_pattern.findall(raw_response)
+            reasoning = ""
+            if match:
+                reasoning = match[0]
+            res = {
+                "score": score,
+                "reasoning": reasoning,
+            }
         return res
 
     @classmethod
