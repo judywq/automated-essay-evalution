@@ -27,6 +27,8 @@ class ModelRunner:
                     model=fine_tuned_model,
                     temperature=0,
                 )
+        else:
+            logger.info(f"Fine-tuning model is not ready yet: {job}")
         
         for baseline_model in self.config.baseline_models:
             input_fn = self.config.dataset_test_full_filename
