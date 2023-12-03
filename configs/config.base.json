@@ -1,0 +1,26 @@
+{
+  "train_on_form": null,
+  "integer_score_only": false,
+  "run_prefix": "2023-12-03-more-train",
+  "model_suffix": "eassy-eval",
+  "test_result_prefix": "finetuned-gpt-3.5",
+  "DEFAULT_LOG_LEVEL": "INFO",
+  "baseline_models": ["gpt-3.5-turbo-1106", "gpt-4-1106-preview"],
+  "REQUEST_TIMEOUT_SECS": 60,
+  "index_file_path_template": "./data/input/TOEFL-iBT/Form {form_id:d}/writing_Form{form_id:d}.xlsx",
+  "response_file_path_tempalte": "./data/input/TOEFL-iBT/Form {form_id:d}/Writing Responses - Form {form_id:d}/Form{form_id:d}-{response_id:d}-Item{item_id:d}.txt",
+  "prompt_file_path_tempalte": "./data/input/TOEFL-iBT/Form {form_id:d}/Prompts/prompt_item_{item_id:d}.txt",
+  "fine_tuning_base_model_id": "gpt-3.5-turbo-1106",
+  "column_response_id": "Sample_ID",
+  "column_score": "Independent",
+  "column_form": "Form_ID",
+  "column_item": "Item_ID",
+  "item_id": 2,
+  "num_per_group": {
+    "train": 16,
+    "val": 3,
+    "test": -1
+  },
+  "system_message_short_fn": "./configs/system_message_short.txt",
+  "system_message_full_fn": "./configs/system_message_full.txt"
+}

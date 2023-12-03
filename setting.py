@@ -7,8 +7,8 @@ train_on_form = 1
 
 tof_name = train_on_form if train_on_form else 'all'
 
-# integer_score_only = False
-integer_score_only = True
+integer_score_only = False
+# integer_score_only = True
 
 global_run_id = f'2023-12-02-fixed-data-length-ToF[{tof_name}]-IntOnly[{integer_score_only}]'
 model_suffix = 'eassy-all'
@@ -22,7 +22,7 @@ official_model_gpt_3_5_turbo = 'gpt-3.5-turbo'
 official_model_gpt_4 = 'gpt-4'
 official_model_gpt_4_turbo = 'gpt-4-1106-preview'
 DEFAULT_MODEL = official_model_gpt_3_5_turbo
-# DEFAULT_MODEL = official_model_gpt_4_turbo
+DEFAULT_MODEL = official_model_gpt_4_turbo
 
 REQUEST_TIMEOUT_SECS = 60
 
@@ -79,7 +79,7 @@ extra_limitation = "" if integer_score_only else "(with 0.5 increments)"
 
 system_message_short = f"""As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 {extra_limitation}, based on the pre-trained rubrics."""
 
-system_message_score = f"""As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 {extra_limitation}\
+system_message = f"""As a language expert, your task is to evaluate argumentative essays on a scale of 0 to 5 {extra_limitation}\
 based on the rubrics below.
 
 5 points:
@@ -116,6 +116,6 @@ based on the rubrics below.
 - An essay at this level merely copies words from the topic, rejects the topic, or is otherwise not connected to the topic, is written in a foreign language, consists of keystroke characters, or is blank.
 """
 
-system_message = system_message_score
+system_message = system_message
 
 # GPT

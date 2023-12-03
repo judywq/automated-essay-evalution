@@ -1,7 +1,9 @@
 import json
 import setting
-
 from lib.finetuning import FineTuningHelper
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def list_jobs():
@@ -15,10 +17,14 @@ def list_jobs():
 def main():
     resp = json.load(open(setting.job_id_filename, "r"))
     job_id = resp["id"]
-    print(job_id)
+    logger.info(f"Loaded job_id: {job_id}")
 
     helper = FineTuningHelper()
-    helper.wait_for_training_job(job_id=job_id)
+    succeeded = helper.wait_for_training_job(job_id=job_id)
+    if succeeded:
+        logger.info(f"Training succeeded: {job_id}")
+    else:
+        logger.info(f"Training failed: {job_id}")
 
 
 if __name__ == "__main__":

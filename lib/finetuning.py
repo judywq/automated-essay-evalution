@@ -1,22 +1,35 @@
+import os
+import json
 from time import sleep
 from openai import OpenAI
 from icecream import ic
 from lib.io import save_to_json
-import setting
+
+import logging
+logger = logging.getLogger(__name__)
 
 client = OpenAI()
 
 
 class FineTuningHelper:
+    def __init__(self, config) -> None:
+        self.config = config
 
-    def run(self, training_file_name, validation_file_name):
-        file_ids = self.upload_data(training_file_name, validation_file_name)
+    def run(self, wait_for_job=False, skip_if_exist=True):
+        if skip_if_exist and self.is_job_exists():
+            logger.debug("Model already trained, skip.")
+            return
+        file_ids = self.upload_data(
+            training_file_name=self.config.dataset_train_filename,
+            validation_file_name=self.config.dataset_val_filename,
+        )
         job_id = self.start_training(
             training_file_id=file_ids["training_file_id"],
             validation_file_id=file_ids["validation_file_id"],
-            suffix_name=setting.model_suffix,
+            suffix_name=self.config.model_suffix,
         )
-        self.wait_for_training_job(job_id=job_id)
+        if wait_for_job:
+            self.wait_for_training_job(job_id=job_id)
 
     def upload_data(self, training_file_name, validation_file_name):
         train_file_obj = client.files.create(
@@ -34,7 +47,7 @@ class FineTuningHelper:
             "validation_file_id": validation_file_id,
         }
         print(file_ids)
-        save_to_json(file_ids, setting.file_id_filename)
+        save_to_json(file_ids, self.config.file_id_filename)
         return file_ids
 
     def start_training(self, training_file_id, validation_file_id, suffix_name):
@@ -42,7 +55,7 @@ class FineTuningHelper:
         job = client.fine_tuning.jobs.create(
             training_file=training_file_id,
             validation_file=validation_file_id,
-            model=setting.fine_tuning_base_model_id,
+            model=self.config.fine_tuning_base_model_id,
             suffix=suffix_name,
         )
 
@@ -53,14 +66,39 @@ class FineTuningHelper:
     def list_jobs(self):
         jobs = client.fine_tuning.jobs.list()
         return jobs.data
+
+    def is_job_exists(self):
+        return os.path.exists(self.config.job_id_filename)
+
+    def is_training_succeeded(self):
+        job = self.try_load_job()
+        return job is not None and job.status == "succeeded"
     
+    def try_load_job(self):
+        if not self.is_job_exists():
+            logger.warning("Model not trained yet.")
+            return None
+        job = json.load(open(self.config.job_id_filename, "r"))
+        return job
+    
+    def retrieve_job(self):
+        job = self.try_load_job()
+        if job is None:
+            return None
+        job_id = job["id"]
+        job = client.fine_tuning.jobs.retrieve(job_id)
+        self.save_job(job)
+        return job
+
     def wait_for_training_job(self, job_id):
         job = client.fine_tuning.jobs.retrieve(job_id)
         print(job)
         self.save_job(job)
 
         while job.status not in ("succeeded", "failed", "cancelled"):
-            event_resp = client.fine_tuning.jobs.list_events(fine_tuning_job_id=job_id, limit=30)
+            event_resp = client.fine_tuning.jobs.list_events(
+                fine_tuning_job_id=job_id, limit=30
+            )
 
             events = event_resp.data
             events.reverse()
@@ -74,11 +112,11 @@ class FineTuningHelper:
             print(job)
 
         self.save_job(job)
-        
+
         return job.status == "succeeded"
 
     def save_job(self, job):
         data = dict(job)
-        if 'hyperparameters' in data:
-            del data['hyperparameters']
-        save_to_json(data, setting.job_id_filename)
+        if "hyperparameters" in data:
+            del data["hyperparameters"]
+        save_to_json(data, self.config.job_id_filename)
