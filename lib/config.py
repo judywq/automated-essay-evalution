@@ -42,11 +42,11 @@ class JsonConfigLoader:
 class MyConfig(JsonConfigLoader):
     
     def __init__(self, file_paths=[]):
-        super().__init__(file_paths)
+        self.data_paths = []
         self.date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         self.system_message_map = {}
-        self.data_paths = []
-        
+        super().__init__(file_paths)
+
     def load_configs(self, file_paths: list[str] | str):
         if not file_paths:
             return
