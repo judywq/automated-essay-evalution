@@ -22,5 +22,6 @@
     "test": -1
   },
   "system_message_short_fn": "./configs/system_message_short.txt",
-  "system_message_full_fn": "./configs/system_message_full.txt"
+  "system_message_full_fn": "./configs/system_message_full.txt",
+  "extra_limitation": "(with 0.5 increments)"
 }

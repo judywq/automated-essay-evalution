@@ -1,5 +1,6 @@
 {
   "integer_score_only": false,
+  "extra_limitation": "(with 0.5 increments)",
   "num_per_group": {
     "train": 14,
     "val": 3,
