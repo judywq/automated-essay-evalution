@@ -1,0 +1,8 @@
+{
+  "integer_score_only": false,
+  "num_per_group": {
+    "train": 14,
+    "val": 3,
+    "test": -1
+  }
+}

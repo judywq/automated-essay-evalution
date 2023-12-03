@@ -19,7 +19,17 @@ class Essay:
     TRUNCATE_LEN = 50
     prompt_mapping = {}
 
-    def __init__(self, fn, text, score, form_id=None, item_id=None, prompt="", prompt_text="", level=Level.NONE) -> None:
+    def __init__(
+        self,
+        fn,
+        text,
+        score,
+        form_id=None,
+        item_id=None,
+        prompt="",
+        prompt_text="",
+        level=Level.NONE,
+    ) -> None:
         self.fn = fn
         self.text = text
         self.score = score
@@ -45,6 +55,17 @@ class Essay:
     def __repr__(self) -> str:
         return self.__str__()
 
+    def to_dict(self) -> dict:
+        return {
+            # "Sample_ID": self.fn,
+            "ETS Score": self.score,
+            "filename": self.fn,
+            "essay_form_id": self.form_id,
+            "essay_item_id": self.item_id,
+            "essay_prompt": self.prompt_text,
+            "essay": self.text,
+        }
+
     @property
     def level(self):
         return self._level
@@ -60,12 +81,17 @@ class Essay:
         self._level = level
 
     @classmethod
-    def load_essays(cls, index_file):
+    def load_essays_from_file(cls, index_file):
+        df = read_data(index_file)
+        return cls.load_essays_from_dataframe(df)
+
+    @classmethod
+    def load_essays_from_dataframe(cls, df):
         def create_object(row):
             response_fn = get_response_fn(row)
             with open(response_fn) as file:
                 text = file.read().strip()
-            
+
             prompt_text = get_prompt_text(row)
 
             obj = cls(
@@ -78,7 +104,6 @@ class Essay:
             )
             return obj
 
-        df = read_data(index_file)
         objs = df.apply(create_object, axis=1).tolist()
         return objs
 
@@ -93,6 +118,7 @@ def get_response_fn(row):
 
 
 prompt_mapping = {}
+
 
 def get_prompt_text(row):
     prompt_fn = setting.prompt_file_path_tempalte.format(

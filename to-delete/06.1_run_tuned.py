@@ -1,6 +1,6 @@
 import json
 from lib.chat import MyBotWrapper
-from lib.model_runner import run_model
+from lib.model_runner_old import run_model
 from lib.parser import EssayEvaluationWithTunedModelParser
 from lib.utils import setup_log
 import setting

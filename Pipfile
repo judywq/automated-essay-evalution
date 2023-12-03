@@ -13,6 +13,7 @@ openpyxl = "*"
 tenacity = "*"
 aiolimiter = "*"
 jupyterlab = "*"
+pydantic = "*"
 
 [dev-packages]
 ipykernel = "*"
