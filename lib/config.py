@@ -148,10 +148,6 @@ class MyConfig(JsonConfigLoader):
         return os.path.join(self.output_root, f'result-summary.xlsx')
     
     @property
-    def extra_limitation(self):
-        return "" if self.integer_score_only else "(with 0.5 increments)"
-    
-    @property
     def system_message_short(self):
         return self.load_system_message(self.system_message_short_fn)
 
