@@ -1,9 +1,11 @@
 import pandas as pd
+from icecream import ic
 from lib.io import write_data
 from lib.utils import setup_log
 from lib.data_processing import SummaryGenerator
 from lib.config import MyConfig
 from configlist import config_list
+
 
 skip_if_exist = True
 skip_if_exist = False
@@ -21,6 +23,7 @@ def main():
         # break
 
     write_data(pd.DataFrame(all_data), total_summary_fn)
+    ic(f"Total summary saved to {total_summary_fn}")
 
 
 if __name__ == "__main__":
