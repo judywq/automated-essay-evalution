@@ -284,10 +284,11 @@ class ResponseParser:
             self.parse_response(
                 input_file=dp.dataset_out,
                 output_file=dp.result_file,
+                integer_score_only=self.config.integer_score_only,
                 skip_if_exist=skip_if_exist,
             )
             
-    def parse_response(self, input_file, output_file, skip_if_exist=True):
+    def parse_response(self, input_file, output_file, integer_score_only, skip_if_exist=True):
         if not os.path.exists(input_file):
             logger.error(f"Input file {input_file} does not exist.")
             return
@@ -305,7 +306,11 @@ class ResponseParser:
                 raw_response = json_data[1]["choices"][0]["message"]["content"]
                 res = self.parse_raw_response(raw_response)
                 essay_data = json_data[2]["essay"]
-                agreement = calc_agreement(ground_truth_score=essay_data["ETS Score"], gpt_score=res["score"])
+                agreement = calc_agreement(
+                    ground_truth_score=essay_data["ETS Score"],
+                    gpt_score=res["score"],
+                    integer_score_only=integer_score_only,
+                    )
                 row_data = {
                     **agreement,
                     "GPT Score": res["score"],
@@ -373,8 +378,12 @@ class SummaryGenerator:
         self.config = config
 
     def run(self, skip_if_exist=True):
+        if skip_if_exist and os.path.exists(self.config.result_summary_filename):
+            print("Result summary already exists, skip.")
+            return
+        
         def combine_labels(rate_label, model_label):
-            return f"{rate_label}:{model_label}"
+            return f"{model_label}\n{rate_label}"
         res = {
             'label': self.config.run_prefix,
             'train_on_form': self.config.tof_name,

@@ -12,7 +12,7 @@ def get_date_str():
     return now.strftime("%Y-%m-%d_%H-%M-%S")
 
 
-def calc_agreement(ground_truth_score: float | int, gpt_score: float | int) -> dict:
+def calc_agreement(ground_truth_score: float | int, gpt_score: float | int, integer_score_only: bool) -> dict:
     """Calculate the agreement between ground truth score and GPT score
 
     Args:
@@ -29,11 +29,18 @@ def calc_agreement(ground_truth_score: float | int, gpt_score: float | int) -> d
     diff = gpt_score - ground_truth_score
     is_agree = abs(diff) < 0.51
 
-    agreement_type = "0"
-    if abs(diff) < 0.01:
-        agreement_type = "2"
-    elif abs(diff) < 0.51:
-        agreement_type = "1-high" if diff > 0 else "1-low"
+    if integer_score_only:
+        agreement_type = "0"
+        if abs(diff) < 0.01:
+            agreement_type = "2"
+        elif abs(diff) < 0.51:
+            agreement_type = "1-high" if diff > 0 else "1-low"
+    else:
+        agreement_type = "0"
+        if abs(diff) < 0.01:
+            agreement_type = "abs"
+        elif abs(diff) < 0.51:
+            agreement_type = "adj"
 
     return {
         "Agreement or not": is_agree,
@@ -62,27 +69,27 @@ def calc_success_rate_dict(result_fn, integers_only) -> dict:
     df_data = pd.read_excel(result_fn)
     res = {}
     if integers_only:
-        res['int-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
-        res['int-2'] = df_data['Agreement type'].isin(['2']).mean()
-        res['int-1-total'] = df_data['Agreement type'].isin(['1-high', '1-low']).mean()
-        res['int-1-high'] = df_data['Agreement type'].isin(['1-high']).mean()
-        res['int-1-low'] = df_data['Agreement type'].isin(['1-low']).mean()
+        res['i-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
+        res['2'] = df_data['Agreement type'].isin(['2']).mean()
+        res['1T'] = df_data['Agreement type'].isin(['1-high', '1-low']).mean()
+        res['1H'] = df_data['Agreement type'].isin(['1-high']).mean()
+        res['1L'] = df_data['Agreement type'].isin(['1-low']).mean()
         res = {
             **res,
-            'float-total': '',
-            'float-absolute': '',
-            'float-adjacent': '',
+            'f-total': '',
+            'abs': '',
+            'adj': '',
         }
     else:
-        res['float-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
-        res['float-absolute'] = df_data['Agreement type'].isin(['2']).mean()
-        res['float-adjacent'] = df_data['Agreement type'].isin(['1-high', '1-low']).mean()
+        res['f-total'] = df_data['Agreement type'].isin(['abs', 'adj']).mean()
+        res['abs'] = df_data['Agreement type'].isin(['abs']).mean()
+        res['adj'] = df_data['Agreement type'].isin(['adj']).mean()
         res = {
-            'int-total': '',
-            'int-2': '',
-            'int-1-total': '',
-            'int-1-high': '',
-            'int-1-low': '',
+            'i-total': '',
+            '2': '',
+            '1T': '',
+            '1H': '',
+            '1L': '',
             **res,
         }
     return res
