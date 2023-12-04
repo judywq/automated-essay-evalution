@@ -5,7 +5,7 @@ from collections import defaultdict
 import pandas as pd
 from lib.io import read_data, write_data
 from lib.essay import Essay
-from lib.utils import calc_agreement, calc_success_rate
+from lib.utils import calc_agreement, calc_success_rate_dict
 from lib.io import save_to_jsonl
 
 import logging
@@ -280,18 +280,17 @@ class ResponseParser:
         self.config = config
 
     def run(self, skip_if_exist=True):
-        res = {}
         for dp in self.config.data_paths:
             self.parse_response(
                 input_file=dp.dataset_out,
                 output_file=dp.result_file,
                 skip_if_exist=skip_if_exist,
             )
-            rate = calc_success_rate(dp.result_file)
-            res[dp.llm_model_label] = rate
-        write_data(pd.DataFrame(res), self.config.result_summary_filename)
             
     def parse_response(self, input_file, output_file, skip_if_exist=True):
+        if not os.path.exists(input_file):
+            logger.error(f"Input file {input_file} does not exist.")
+            return
         if skip_if_exist and os.path.exists(output_file):
             logger.info(f"Result file {output_file} already exists, skip parsing.")
             return
@@ -366,4 +365,44 @@ class ResponseParser:
         if text.endswith("```"):
             text = text[:-3]
         return text
+
+
+class SummaryGenerator:
+    
+    def __init__(self, config) -> None:
+        self.config = config
+
+    def run(self, skip_if_exist=True):
+        def combine_labels(rate_label, model_label):
+            return f"{rate_label}:{model_label}"
+        res = {
+            'label': self.config.run_prefix,
+            'train_on_form': self.config.tof_name,
+            'integer_score_only': self.config.integer_score_only,
+            'train_size': self.calc_dataset_size(self.config.index_train_filename),
+            'val_size': self.calc_dataset_size(self.config.index_val_filename),
+            'test_size': self.calc_dataset_size(self.config.index_test_filename),
+        }
+        model_labels = [dp.llm_model_label for dp in self.config.data_paths]
+        rate_labels = []
+        tmp = {}
+        for dp in self.config.data_paths:
+            rate_dict = calc_success_rate_dict(dp.result_file, self.config.integer_score_only)
+            for rate_label, rate in rate_dict.items():
+                if rate_label not in rate_labels:
+                    rate_labels.append(rate_label)
+                field_name = combine_labels(rate_label, dp.llm_model_label)
+                tmp[field_name] = rate
         
+        # Order the fields so that rate_labels are in higher priority
+        for rate_label in rate_labels:
+            for model_label in model_labels:
+                field_name = combine_labels(rate_label, model_label)
+                res[field_name] = tmp[field_name]
+        write_data(pd.DataFrame([res]), self.config.result_summary_filename)
+        
+        return res
+        
+    def calc_dataset_size(self, fn):
+        df = read_data(fn)
+        return df.shape[0]

@@ -146,6 +146,10 @@ class MyConfig(JsonConfigLoader):
     @property
     def result_summary_filename(self):
         return os.path.join(self.output_root, f'result-summary.xlsx')
+
+    @property
+    def total_result_summary_filename(self):
+        return os.path.join(self.output_root, f'total-result-summary.xlsx')
     
     @property
     def system_message_short(self):
