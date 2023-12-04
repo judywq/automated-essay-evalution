@@ -18,6 +18,8 @@ config_unit_float = "./configs/config.type.float.json"
 config_unit_gpt_3_5_turbo = "./configs/config.gpt3.5-turbo.json"
 config_unit_gpt_4_turbo = "./configs/config.gpt4-turbo.json"
 
+config_unit_20231202 = "./configs/config.20231202.json"
+
 config_set_fa_float = [config_unit_base, config_unit_form_all, config_unit_float]
 config_set_f1_float = [config_unit_base, config_unit_form_1, config_unit_float]
 config_set_f2_float = [config_unit_base, config_unit_form_2, config_unit_float]
@@ -33,3 +35,11 @@ config_list = [
     config_set_fa_float,
     config_set_fa_int,
 ]
+
+ADD_20231202 = False
+ADD_20231202 = True
+
+if ADD_20231202:
+    for confitset in config_list:
+        confitset.append(config_unit_20231202)
+    
