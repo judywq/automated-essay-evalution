@@ -54,12 +54,39 @@ def calc_and_write_success_rate(result_fn):
 
 def calc_success_rate(result_fn):
     df_data = pd.read_excel(result_fn)
+    col_name = ["Agreement or not"]
+    rate = df_data[col_name].sum() / len(df_data)
+    return rate.iloc[0]
+
+def calc_success_rate_dict(result_fn, integers_only) -> dict:
+    df_data = pd.read_excel(result_fn)
     res = {}
-    for col_name in ["Agreement or not"]:
-        if col_name in df_data.columns:
-            rate = df_data[col_name].sum() / len(df_data)
-            res[col_name] = rate
+    if integers_only:
+        res['int-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
+        res['int-2'] = df_data['Agreement type'].isin(['2']).mean()
+        res['int-1-total'] = df_data['Agreement type'].isin(['1-high', '1-low']).mean()
+        res['int-1-high'] = df_data['Agreement type'].isin(['1-high']).mean()
+        res['int-1-low'] = df_data['Agreement type'].isin(['1-low']).mean()
+        res = {
+            **res,
+            'float-total': '',
+            'float-absolute': '',
+            'float-adjacent': '',
+        }
+    else:
+        res['float-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
+        res['float-absolute'] = df_data['Agreement type'].isin(['2']).mean()
+        res['float-adjacent'] = df_data['Agreement type'].isin(['1-high', '1-low']).mean()
+        res = {
+            'int-total': '',
+            'int-2': '',
+            'int-1-total': '',
+            'int-1-high': '',
+            'int-1-low': '',
+            **res,
+        }
     return res
+
 
 def setup_log(level=None, log_path='./log/txt', need_file=True):
     if not level:
