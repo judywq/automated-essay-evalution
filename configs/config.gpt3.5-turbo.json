@@ -1,5 +1,8 @@
 {
   "baseline_models": [
-    "gpt-3.5-turbo-1106"
+    {
+      "id": "gpt-3.5-turbo-1106",
+      "label": "gpt-3.5"
+    }
   ]
 }

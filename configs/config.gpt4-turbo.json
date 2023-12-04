@@ -1,5 +1,8 @@
 {
   "baseline_models": [
-    "gpt-4-1106-preview"
+    {
+      "id": "gpt-4-1106-preview",
+      "label": "gpt-4"
+    }
   ]
 }

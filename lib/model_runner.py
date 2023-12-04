@@ -31,19 +31,20 @@ class ModelRunner:
             logger.info(f"Fine-tuning model is not ready yet: {job}")
         
         for baseline_model in self.config.baseline_models:
+            model_id = baseline_model["id"]
             input_fn = self.config.dataset_test_full_filename
             output_fn = self.config.get_dataset_test_result_filename(
                 input_fn=input_fn,
-                model_name=baseline_model,
+                model_name=model_id,
             )
             
             if skip_if_exists and os.path.exists(output_fn):
-                logger.info(f"Skip running model {baseline_model}.")
+                logger.info(f"Skip running model {model_id}.")
                 continue
             self._run_model(
                 input_jsonl_fn=input_fn,
                 output_jsonl_fn=output_fn,
-                model=baseline_model,
+                model=model_id,
                 temperature=0,
             )
 

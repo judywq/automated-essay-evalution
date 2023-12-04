@@ -12,7 +12,7 @@ class DataPath(BaseModel):
     result_file: str
     is_official: bool = False
     llm_model_label: Optional[str] = ""
-    llm_model_name: Optional[str] = None
+    llm_model_id: Optional[str] = None
 
 
 class JsonConfigLoader:
@@ -56,14 +56,16 @@ class MyConfig(JsonConfigLoader):
     def load_data_paths(self):
         try:
             data_paths = []
-            for model_name in self.baseline_models:
+            for model in self.baseline_models:
+                model_id = model["id"]
+                model_label = model["label"]
                 data_paths.append(DataPath(
                     index_file=self.index_test_filename,
                     dataset_in=os.path.join(self.output_root, 'dataset', 'test.full.jsonl'),
-                    dataset_out=os.path.join(self.output_root, 'dataset', f'test.full.result.{model_name}.jsonl'),
-                    result_file=os.path.join(self.output_root, 'results', f'test-result-{model_name}.xlsx'),
-                    llm_model_label=model_name,
-                    llm_model_name=model_name,
+                    dataset_out=os.path.join(self.output_root, 'dataset', f'test.full.result.{model_id}.jsonl'),
+                    result_file=os.path.join(self.output_root, 'results', f'test-result-{model_id}.xlsx'),
+                    llm_model_label=model_label,
+                    llm_model_id=model_id,
                     is_official=True,   
                 ))
             data_paths.append(DataPath(
