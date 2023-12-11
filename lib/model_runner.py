@@ -25,7 +25,7 @@ class ModelRunner:
                     input_jsonl_fn=input_fn,
                     output_jsonl_fn=output_fn,
                     model=fine_tuned_model,
-                    temperature=0,
+                    temperature=self.config.temperature,
                 )
         else:
             logger.info(f"Fine-tuning model is not ready yet: {job}")
