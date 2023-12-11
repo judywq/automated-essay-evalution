@@ -15,6 +15,7 @@
       "label": "gpt-4"
     }
   ],
+  "temperature": 0,
   "REQUEST_TIMEOUT_SECS": 60,
   "index_file_path_template": "./data/input/TOEFL-iBT/Form {form_id:d}/writing_Form{form_id:d}.xlsx",
   "response_file_path_tempalte": "./data/input/TOEFL-iBT/Form {form_id:d}/Writing Responses - Form {form_id:d}/Form{form_id:d}-{response_id:d}-Item{item_id:d}.txt",

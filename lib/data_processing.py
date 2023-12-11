@@ -322,6 +322,7 @@ class ResponseParser:
                 rows.append(row_data)
         df = pd.DataFrame(rows)
         write_data(df, output_file)
+        logger.info(f"Parsed result saved to file: {output_file}")
     
     @classmethod
     def parse_raw_response(cls, raw_response):
