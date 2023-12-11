@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import datetime
+import numpy as np
+from sklearn.metrics import mean_squared_error
 from setting import DEFAULT_LOG_LEVEL
 
 import logging
@@ -70,6 +72,13 @@ def calc_success_rate_dict(result_fn, integers_only) -> dict:
         return {}
     df_data = pd.read_excel(result_fn)
     res = {}
+
+    actual_values = df_data['ETS Score']
+    predicted_values = df_data['GPT Score']
+    # Calculate Root Mean Squared Error (RMSE)
+    rmse = np.sqrt(mean_squared_error(actual_values, predicted_values))
+    res['RMSE'] = rmse
+
     if integers_only:
         res['i-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
         res['2'] = df_data['Agreement type'].isin(['2']).mean()
