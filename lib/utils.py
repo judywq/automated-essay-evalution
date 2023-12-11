@@ -66,6 +66,8 @@ def calc_success_rate(result_fn):
     return rate.iloc[0]
 
 def calc_success_rate_dict(result_fn, integers_only) -> dict:
+    if not os.path.exists(result_fn):
+        return {}
     df_data = pd.read_excel(result_fn)
     res = {}
     if integers_only:
