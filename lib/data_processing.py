@@ -51,8 +51,10 @@ class DataSplitter:
         df = pd.concat([df1, df2], ignore_index=True)
         
         df[self.config.column_item] = self.config.item_id
-                
-        logger.info("Score shape:\n{}".format(df.value_counts([self.config.column_form, self.config.column_score]).sort_index()))
+        
+        score_distribution = df.value_counts([self.config.column_form, self.config.column_score]).sort_index()
+        write_data(score_distribution, self.config.distribution_filename, index=True)
+        logger.info("Score shape:\n{}".format(score_distribution))
 
         return df
     

@@ -30,14 +30,15 @@ def read_data(path) -> pd.DataFrame:
     return df
 
 
-def write_data(df: pd.DataFrame, filename: str):
+def write_data(df: pd.DataFrame, filename: str, index=False):
     path = os.path.dirname(filename)
-    os.makedirs(path, exist_ok=True)
+    if path:
+        os.makedirs(path, exist_ok=True)
     _type = parse_file_type(filename)
     if _type == FileType.CSV:
-        df.to_csv(filename, index=None)
+        df.to_csv(filename, index=index)
     elif _type == FileType.EXCEL:
-        df.to_excel(filename, index=None)
+        df.to_excel(filename, index=index)
 
 
 class FileType(Enum):
