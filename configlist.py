@@ -1,13 +1,6 @@
-# __all__ = [
-#     "config_set_fa_float",
-#     "config_set_f1_float",
-#     "config_set_f2_float",
-#     "config_set_fa_int",
-#     "config_set_f1_int",
-#     "config_set_f2_int",
-#     "config_unit_gpt_3_5_turbo",
-#     "config_unit_gpt_4_turbo",
-# ]
+__all__ = [
+    "config_list",
+]
 
 config_unit_base = "./configs/config.base.json"
 config_unit_form_1 = "./configs/config.form.1.json"
@@ -29,16 +22,7 @@ config_set_fa_int = [config_unit_base, config_unit_form_all, config_unit_int]
 config_set_f1_int = [config_unit_base, config_unit_form_1, config_unit_int]
 config_set_f2_int = [config_unit_base, config_unit_form_2, config_unit_int]
 
-# config_list = [
-#     config_set_f1_float,
-#     # config_set_f1_int,
-#     config_set_f2_float,
-#     # config_set_f2_int,
-#     config_set_fa_float,
-#     # config_set_fa_int,
-# ]
-
-config_list = [
+config_list_base = [
     config_set_f1_float,
     config_set_f1_int,
     config_set_f2_float,
@@ -47,10 +31,22 @@ config_list = [
     config_set_fa_int,
 ]
 
-variation = config_unit_20231202
-# variation = config_unit_20231203
-# variation = config_unit_20231208
+config_list_base_float_only = [
+    config_set_f1_float,
+    config_set_f2_float,
+    config_set_fa_float,
+]
 
-for confitset in config_list:
-    confitset.append(variation)
+variations = [
+    (config_unit_20231202, config_list_base),
+    # (config_unit_20231203, config_list_base),
+    # (config_unit_20231208, config_list_base_float_only),
+]
+
+config_list = []
+for variation, base in variations:
+    for config_set in base:
+        tmp = config_set.copy()
+        tmp.append(variation)
+        config_list.append(tmp)
     
