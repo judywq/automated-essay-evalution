@@ -5,7 +5,7 @@ from collections import defaultdict
 import pandas as pd
 from lib.io import read_data, write_data
 from lib.essay import Essay
-from lib.utils import calc_agreement, calc_success_rate_dict
+from lib.utils import calc_agreement, calc_metrics_dict
 from lib.io import save_to_jsonl
 
 import logging
@@ -384,6 +384,8 @@ class SummaryGenerator:
         if skip_if_exist and os.path.exists(self.config.result_summary_filename):
             print("Result summary already exists, skip.")
             return
+    
+        logger.info(f"Generating result summary: {self.config.result_summary_filename}")
         
         def combine_labels(rate_label, model_label):
             return f"{model_label}\n{rate_label}"
@@ -399,7 +401,7 @@ class SummaryGenerator:
         rate_labels = []
         tmp = {}
         for dp in self.config.data_paths:
-            rate_dict = calc_success_rate_dict(dp.result_file, self.config.integer_score_only)
+            rate_dict = calc_metrics_dict(dp.result_file, self.config.integer_score_only)
             for rate_label, rate in rate_dict.items():
                 if rate_label not in rate_labels:
                     rate_labels.append(rate_label)
