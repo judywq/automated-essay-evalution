@@ -1,7 +1,7 @@
 {
   "train_on_form": null,
   "integer_score_only": false,
-  "run_prefix": "2023-12-03-more-train",
+  "run_prefix": "2023-01-01-NONE",
   "model_suffix": "eassy-eval",
   "test_result_prefix": "finetuned-gpt-3.5",
   "DEFAULT_LOG_LEVEL": "INFO",
