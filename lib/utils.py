@@ -73,11 +73,18 @@ def calc_success_rate_dict(result_fn, integers_only) -> dict:
     df_data = pd.read_excel(result_fn)
     res = {}
 
-    actual_values = df_data['ETS Score']
-    predicted_values = df_data['GPT Score']
-    # Calculate Root Mean Squared Error (RMSE)
-    rmse = np.sqrt(mean_squared_error(actual_values, predicted_values))
-    res['RMSE'] = rmse
+    def get_rmse(df, filter_form=None):
+        if filter_form:
+            df = df[df['essay_form_id'] == filter_form]
+        actual_values = df['ETS Score']
+        predicted_values = df['GPT Score']
+        # Calculate Root Mean Squared Error (RMSE)
+        rmse = np.sqrt(mean_squared_error(actual_values, predicted_values))
+        return rmse
+
+    res['RMSE'] = get_rmse(df_data)
+    res['RMSE-1'] = get_rmse(df_data, filter_form=1)
+    res['RMSE-2'] = get_rmse(df_data, filter_form=2)
 
     if integers_only:
         res['i-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
