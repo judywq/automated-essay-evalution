@@ -29,19 +29,28 @@ config_set_fa_int = [config_unit_base, config_unit_form_all, config_unit_int]
 config_set_f1_int = [config_unit_base, config_unit_form_1, config_unit_int]
 config_set_f2_int = [config_unit_base, config_unit_form_2, config_unit_int]
 
+# config_list = [
+#     config_set_f1_float,
+#     # config_set_f1_int,
+#     config_set_f2_float,
+#     # config_set_f2_int,
+#     config_set_fa_float,
+#     # config_set_fa_int,
+# ]
+
 config_list = [
     config_set_f1_float,
-    # config_set_f1_int,
+    config_set_f1_int,
     config_set_f2_float,
-    # config_set_f2_int,
+    config_set_f2_int,
     config_set_fa_float,
-    # config_set_fa_int,
+    config_set_fa_int,
 ]
 
-ADD_20231208 = False
-ADD_20231208 = True
+variation = config_unit_20231202
+# variation = config_unit_20231203
+# variation = config_unit_20231208
 
-if ADD_20231208:
-    for confitset in config_list:
-        confitset.append(config_unit_20231208)
+for confitset in config_list:
+    confitset.append(variation)
     
