@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import datetime
 import numpy as np
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, cohen_kappa_score
 from setting import DEFAULT_LOG_LEVEL
 
 import logging
@@ -67,24 +67,36 @@ def calc_success_rate(result_fn):
     rate = df_data[col_name].sum() / len(df_data)
     return rate.iloc[0]
 
-def calc_success_rate_dict(result_fn, integers_only) -> dict:
+def calc_metrics_dict(result_fn, integers_only) -> dict:
     if not os.path.exists(result_fn):
         return {}
     df_data = pd.read_excel(result_fn)
     res = {}
 
-    def get_rmse(df, filter_form=None):
+    def rmse_metric(y_true, y_pred):
+        # Calculate Root Mean Squared Error (RMSE)
+        return np.sqrt(mean_squared_error(y_true, y_pred))
+    
+    def kappa_metric(y_true, y_pred):
+        y_true_labels = (y_true * 2).astype(int)
+        y_pred_labels = (y_pred * 2).astype(int)
+        # Calculate Cohen's kappa
+        return cohen_kappa_score(y_true_labels, y_pred_labels, weights='quadratic')
+    
+    def get_metrics(metric_func, df, filter_form=None):
         if filter_form:
             df = df[df['essay_form_id'] == filter_form]
         actual_values = df['ETS Score']
         predicted_values = df['GPT Score']
-        # Calculate Root Mean Squared Error (RMSE)
-        rmse = np.sqrt(mean_squared_error(actual_values, predicted_values))
-        return rmse
+        return metric_func(actual_values, predicted_values)
 
-    res['RMSE'] = get_rmse(df_data)
-    res['RMSE-1'] = get_rmse(df_data, filter_form=1)
-    res['RMSE-2'] = get_rmse(df_data, filter_form=2)
+    for metric_name, metric_func in [
+        ('RMSE', rmse_metric),
+        ('Kappa', kappa_metric),
+    ]:
+        res[metric_name] = get_metrics(metric_func, df_data)
+        res[f'{metric_name}-1'] = get_metrics(metric_func, df_data, filter_form=1)
+        res[f'{metric_name}-2'] = get_metrics(metric_func, df_data, filter_form=2)
 
     if integers_only:
         res['i-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
