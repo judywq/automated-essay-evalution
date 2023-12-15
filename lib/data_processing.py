@@ -396,6 +396,8 @@ class SummaryGenerator:
             'train_size': self.calc_dataset_size(self.config.index_train_filename),
             'val_size': self.calc_dataset_size(self.config.index_val_filename),
             'test_size': self.calc_dataset_size(self.config.index_test_filename),
+            'test_size_p1': self.calc_dataset_size(self.config.index_test_filename, filter_form=1),
+            'test_size_p2': self.calc_dataset_size(self.config.index_test_filename, filter_form=2),
         }
         model_labels = [dp.llm_model_label for dp in self.config.data_paths]
         rate_labels = []
@@ -417,6 +419,8 @@ class SummaryGenerator:
         
         return res
         
-    def calc_dataset_size(self, fn):
+    def calc_dataset_size(self, fn, filter_form=None):
         df = read_data(fn)
+        if filter_form:
+            df = df[df[self.config.column_form] == filter_form]
         return df.shape[0]
