@@ -73,6 +73,7 @@ def calc_metrics_dict(result_fn, integers_only) -> dict:
     df_data = pd.read_excel(result_fn)
     res = {}
 
+    # All kinds of metrics
     def rmse_metric(y_true, y_pred):
         # Calculate Root Mean Squared Error (RMSE)
         return np.sqrt(mean_squared_error(y_true, y_pred))
@@ -95,33 +96,50 @@ def calc_metrics_dict(result_fn, integers_only) -> dict:
         ('Kappa', kappa_metric),
     ]:
         res[metric_name] = get_metrics(metric_func, df_data)
-        res[f'{metric_name}-1'] = get_metrics(metric_func, df_data, filter_form=1)
-        res[f'{metric_name}-2'] = get_metrics(metric_func, df_data, filter_form=2)
+        res[f'{metric_name}-P1'] = get_metrics(metric_func, df_data, filter_form=1)
+        res[f'{metric_name}-P2'] = get_metrics(metric_func, df_data, filter_form=2)
 
+    # All kinds of agreement
+    def get_agreement_int(df, res, filter_form=None):
+        suffix = ''
+        if filter_form:
+            df = df[df['essay_form_id'] == filter_form]
+            suffix = f'-P{filter_form}'
+        res['i-total' + suffix] = df['Agreement type'].isin(['2', '1-high', '1-low']).mean()
+        res['2' + suffix] = df['Agreement type'].isin(['2']).mean()
+        res['1T' + suffix] = df['Agreement type'].isin(['1-high', '1-low']).mean()
+        res['1H' + suffix] = df['Agreement type'].isin(['1-high']).mean()
+        res['1L' + suffix] = df['Agreement type'].isin(['1-low']).mean()
+
+    def get_agreement_float(df, res, filter_form=None):
+        suffix = ''
+        if filter_form:
+            df = df[df['essay_form_id'] == filter_form]
+            suffix = f'-P{filter_form}'
+        res['f-total' + suffix] = df['Agreement type'].isin(['abs', 'adj']).mean()
+        res['abs' + suffix] = df['Agreement type'].isin(['abs']).mean()
+        res['adj' + suffix] = df['Agreement type'].isin(['adj']).mean()
+    
     if integers_only:
-        res['i-total'] = df_data['Agreement type'].isin(['2', '1-high', '1-low']).mean()
-        res['2'] = df_data['Agreement type'].isin(['2']).mean()
-        res['1T'] = df_data['Agreement type'].isin(['1-high', '1-low']).mean()
-        res['1H'] = df_data['Agreement type'].isin(['1-high']).mean()
-        res['1L'] = df_data['Agreement type'].isin(['1-low']).mean()
-        res = {
-            **res,
-            'f-total': '',
-            'abs': '',
-            'adj': '',
-        }
+        for form_id in [None, 1, 2]:
+            get_agreement_int(df_data, res, filter_form=form_id)
+        # res = {
+        #     **res,
+        #     'f-total': '',
+        #     'abs': '',
+        #     'adj': '',
+        # }
     else:
-        res['f-total'] = df_data['Agreement type'].isin(['abs', 'adj']).mean()
-        res['abs'] = df_data['Agreement type'].isin(['abs']).mean()
-        res['adj'] = df_data['Agreement type'].isin(['adj']).mean()
-        res = {
-            'i-total': '',
-            '2': '',
-            '1T': '',
-            '1H': '',
-            '1L': '',
-            **res,
-        }
+        for form_id in [None, 1, 2]:
+            get_agreement_float(df_data, res, filter_form=form_id)
+        # res = {
+        #     'i-total': '',
+        #     '2': '',
+        #     '1T': '',
+        #     '1H': '',
+        #     '1L': '',
+        #     **res,
+        # }
     return res
 
 
