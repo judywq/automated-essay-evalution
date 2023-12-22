@@ -56,9 +56,9 @@ def append_metadata():
         for baseline_model in config.baseline_models:
             model_id = baseline_model["id"]
             input_fn = config.dataset_test_full_filename
-            output_fn = config.get_dataset_test_result_filename(
+            output_fn = config.get_dataset_test_output_filename(
                 input_fn=input_fn,
-                model_name=model_id,
+                model_id=model_id,
             )
             
             output_fn_bk = output_fn.replace(".jsonl", ".bk.jsonl")

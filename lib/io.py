@@ -12,6 +12,10 @@ def save_to_jsonl(dataset, file_path):
             json_line = json.dumps(record)
             file.write(json_line + '\n')
 
+def read_json(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
 
 def save_to_json(data: dict, file_path, indent=4):
     path = os.path.dirname(file_path)

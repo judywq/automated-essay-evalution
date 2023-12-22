@@ -12,7 +12,7 @@ integer_score_only = False
 
 global_run_id = f'2023-12-02-fixed-data-length-ToF[{tof_name}]-IntOnly[{integer_score_only}]'
 model_suffix = 'eassy-all'
-test_result_prefix = 'finetuned-gpt-3.5'
+finetuned_prefix = 'finetuned-gpt-3.5'
 
 
 DEFAULT_LOG_LEVEL = "INFO"
@@ -45,7 +45,7 @@ dataset_test_filename = os.path.join(output_root, 'dataset', 'test.jsonl')
 
 file_id_filename = os.path.join(output_root, 'ids', f'file-id.json')
 job_id_filename = os.path.join(output_root, 'ids', f'job-id.json')
-test_result_finetuned_filename = os.path.join(output_root, 'results', f'test-result-{test_result_prefix}-{date_str}.xlsx')
+test_result_finetuned_filename = os.path.join(output_root, 'results', f'test-result-{finetuned_prefix}-{date_str}.xlsx')
 test_result_official_filename = os.path.join(output_root, 'results', f'test-result-{DEFAULT_MODEL}-{date_str}.xlsx')
 
 fine_tuning_base_model_id = 'gpt-3.5-turbo-1106'

@@ -14,12 +14,12 @@ def get_date_str():
     return now.strftime("%Y-%m-%d_%H-%M-%S")
 
 
-def calc_agreement(ground_truth_score: float | int, gpt_score: float | int, integer_score_only: bool) -> dict:
-    """Calculate the agreement between ground truth score and GPT score
+def calc_agreement(ground_truth_score: float | int, llm_score: float | int, integer_score_only: bool) -> dict:
+    """Calculate the agreement between ground truth score and LLM Score
 
     Args:
         ground_truth_score (float|int): ground truth score
-        gpt_score (float|int): score from GPT
+        llm_score (float|int): score from LLM model
 
     Returns:
         dict: a dict of agreement type and whether the two scores agree
@@ -28,7 +28,7 @@ def calc_agreement(ground_truth_score: float | int, gpt_score: float | int, inte
             "Agreement type": "0" | "1-high" | "1-low" | "2"
         }
     """
-    diff = gpt_score - ground_truth_score
+    diff = llm_score - ground_truth_score
     is_agree = abs(diff) < 0.51
 
     if integer_score_only:
@@ -88,7 +88,10 @@ def calc_metrics_dict(result_fn, integers_only) -> dict:
         if filter_form:
             df = df[df['essay_form_id'] == filter_form]
         actual_values = df['ETS Score']
-        predicted_values = df['GPT Score']
+        if 'LLM Score' in df.columns:
+            predicted_values = df['LLM Score']
+        else:
+            predicted_values = df['GPT Score']
         return metric_func(actual_values, predicted_values)
 
     for metric_name, metric_func in [

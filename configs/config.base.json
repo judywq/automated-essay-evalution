@@ -3,16 +3,27 @@
   "integer_score_only": false,
   "run_prefix": "2023-01-01-NONE",
   "model_suffix": "eassy-eval",
-  "test_result_prefix": "finetuned-gpt-3.5",
+  "run_finetuned": false,
+  "finetuned_prefix": "finetuned-gpt-3.5",
   "DEFAULT_LOG_LEVEL": "INFO",
   "baseline_models": [
+    "gemini-pro"
+  ],
+  "llm_models": [
     {
       "id": "gpt-3.5-turbo-1106",
-      "label": "gpt-3.5"
+      "label": "gpt-3.5",
+      "format": "openai"
     },
     {
       "id": "gpt-4-1106-preview",
-      "label": "gpt-4"
+      "label": "gpt-4",
+      "format": "openai"
+    },
+    {
+      "id": "gemini-pro",
+      "label": "gemini",
+      "format": "gemini"
     }
   ],
   "temperature": 0,

@@ -15,7 +15,7 @@ def main():
             for i, row in df.iterrows():
                 agreement = calc_agreement(
                     ground_truth_score=row["ETS Score"],
-                    gpt_score=row["GPT Score"],
+                    llm_score=row["LLM Score"],
                     integer_score_only=config.integer_score_only,
                 )
                 for k, v in agreement.items():
@@ -24,8 +24,8 @@ def main():
             # break
         # break
 
-def calc_agreement(ground_truth_score: float | int, gpt_score: float | int, integer_score_only: bool) -> dict:
-    diff = gpt_score - ground_truth_score
+def calc_agreement(ground_truth_score: float | int, llm_score: float | int, integer_score_only: bool) -> dict:
+    diff = llm_score - ground_truth_score
     is_agree = abs(diff) < 0.51
 
     if integer_score_only:

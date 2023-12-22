@@ -5,14 +5,22 @@ from typing import Optional
 from pydantic import BaseModel
 
 
+class LlmModel(BaseModel):
+    active: bool
+    id: str
+    label: str
+    format: str
+
 class DataPath(BaseModel):
     index_file: str
     dataset_in: str
     dataset_out: str
     result_file: str
-    is_official: bool = False
+    is_finetuned: bool = False
     llm_model_label: Optional[str] = ""
     llm_model_id: Optional[str] = None
+    active: bool = True
+    format: str = "openai"
 
 
 class JsonConfigLoader:
@@ -56,25 +64,29 @@ class MyConfig(JsonConfigLoader):
     def load_data_paths(self):
         try:
             data_paths = []
-            for model in self.baseline_models:
-                model_id = model["id"]
-                model_label = model["label"]
+            for model in self.get_baseline_models():
+                model_id = model.id
+                model_label = model.label
                 data_paths.append(DataPath(
                     index_file=self.index_test_filename,
-                    dataset_in=os.path.join(self.output_root, 'dataset', 'test.full.jsonl'),
-                    dataset_out=os.path.join(self.output_root, 'dataset', f'test.full.result.{model_id}.jsonl'),
-                    result_file=os.path.join(self.output_root, 'results', f'test-result-{model_id}.xlsx'),
+                    dataset_in=self.get_dataset_test_input_filename(model_id),
+                    dataset_out=self.get_dataset_test_output_filename(model_id),
+                    result_file=self.get_test_result_filename(model_id),
                     llm_model_label=model_label,
                     llm_model_id=model_id,
-                    is_official=True,   
+                    format=model.format,
+                    is_finetuned=False,
+                    active=model.active,
                 ))
+            # Finetuned model
             data_paths.append(DataPath(
                 index_file=self.index_test_filename,
                 dataset_in=os.path.join(self.output_root, 'dataset', 'test.short.jsonl'),
-                dataset_out=os.path.join(self.output_root, 'dataset', f'test.short.result.{self.test_result_prefix}.jsonl'),
-                result_file=os.path.join(self.output_root, 'results', f'test-result-{self.test_result_prefix}.xlsx'),
+                dataset_out=os.path.join(self.output_root, 'dataset', f'test.short.result.{self.finetuned_prefix}.jsonl'),
+                result_file=os.path.join(self.output_root, 'results', f'test-result-{self.finetuned_prefix}.xlsx'),
                 llm_model_label="finetuned-gpt-3.5",
-                is_official=False,
+                is_finetuned=True,
+                active=self.run_finetuned,
             ))
             self.data_paths = data_paths
         except KeyError:
@@ -124,13 +136,19 @@ class MyConfig(JsonConfigLoader):
     @property
     def dataset_test_full_filename(self):
         return os.path.join(self.output_root, 'dataset', 'test.full.jsonl')
+
+    def get_dataset_test_input_filename(self, model_id:str):
+        # if model_id not in ['gemini-pro']:
+            # raise ValueError(f"Unsupported model id: {model_id}")
+        return os.path.join(self.output_root, 'dataset', f'test.full.{model_id}.jsonl')
     
-    def get_dataset_test_result_filename(self, input_fn, model_name):
-        return input_fn.replace('.jsonl', f'.result.{model_name}.jsonl')
+    def get_dataset_test_output_filename(self, model_id):
+        return os.path.join(self.output_root, 'dataset', f'test.full.{model_id}.output.jsonl')
+        # return input_fn.replace('.jsonl', f'.result.{model_id}.jsonl')
     
     def get_dataset_test_result_finetuned_filename(self):
         input_fn = self.dataset_test_short_filename
-        return input_fn.replace('.jsonl', f'.result.{self.test_result_prefix}.jsonl')
+        return input_fn.replace('.jsonl', f'.result.{self.finetuned_prefix}.jsonl')
     
     @property
     def file_id_filename(self):
@@ -142,12 +160,10 @@ class MyConfig(JsonConfigLoader):
     
     @property
     def test_result_finetuned_filename(self):
-        return os.path.join(self.output_root, 'results', f'test-result-{self.test_result_prefix}-{self.date_str}.xlsx')
+        return os.path.join(self.output_root, 'results', f'test-result-{self.finetuned_prefix}-{self.date_str}.xlsx')
     
-    @property
-    def test_result_official_filename(self):
-        # TODO: rename DEFAULT_MODEL to inference_model
-        return os.path.join(self.output_root, 'results', f'test-result-{self.DEFAULT_MODEL}-{self.date_str}.xlsx')
+    def get_test_result_filename(self, model_id):
+        return os.path.join(self.output_root, 'results', f'test-result-{model_id}.xlsx')
     
     @property
     def result_summary_filename(self):
@@ -156,6 +172,20 @@ class MyConfig(JsonConfigLoader):
     @property
     def total_result_summary_filename(self):
         return os.path.join(self.output_root, f'total-result-summary.xlsx')
+    
+    def get_baseline_models(self) -> list[LlmModel]:
+        results = []
+        # for model_id in self.baseline_models:
+        for model in self.llm_models:
+            active = model['id'] in self.baseline_models
+            results.append(LlmModel(**model, active=active))
+        return results
+    
+    def get_llm_model(self, model_id: str) -> LlmModel:
+        for model in self.llm_models:
+            if model['id'] == model_id:
+                return LlmModel(**model)
+        raise ValueError(f"LLM model not found: {model_id}")
     
     @property
     def system_message_short(self):

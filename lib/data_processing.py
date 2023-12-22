@@ -129,15 +129,7 @@ class DatasetPreparation:
             skip_if_exist=skip_if_exist,
             for_training=True,
         )
-        # Test data for official models
-        self.prepare(
-            input_file=self.config.index_test_filename,
-            system_message=self.config.system_message_full,
-            dataset_fn=self.config.dataset_test_full_filename,
-            skip_if_exist=skip_if_exist,
-            for_training=False,
-        )
-        # Test data for fine-tuned model
+        # Test data for openai fine-tuned model
         self.prepare(
             input_file=self.config.index_test_filename,
             system_message=self.config.system_message_short,
@@ -145,29 +137,62 @@ class DatasetPreparation:
             skip_if_exist=skip_if_exist,
             for_training=False,
         )
+        
+        for dp in self.config.data_paths:
+            if dp.is_finetuned:
+                continue
+            # Test data for baseline models
+            self.prepare(
+                input_file=self.config.index_test_filename,
+                system_message=self.config.system_message_full,
+                dataset_fn=dp.dataset_in,
+                skip_if_exist=skip_if_exist,
+                for_training=False,
+                format=dp.format,
+            )
+        # # Test data for openai official models
+        # self.prepare(
+        #     input_file=self.config.index_test_filename,
+        #     system_message=self.config.system_message_full,
+        #     dataset_fn=self.config.dataset_test_full_filename,
+        #     skip_if_exist=skip_if_exist,
+        #     for_training=False,
+        # )
+        # # Test data for google official models
+        # self.prepare(
+        #     input_file=self.config.index_test_filename,
+        #     system_message=self.config.system_message_full,
+        #     dataset_fn=self.config.get_dataset_test_input_filename(model_id='gemini-pro'),
+        #     skip_if_exist=skip_if_exist,
+        #     for_training=False,
+        #     format='gemini',
+        # )
 
-    def prepare(self, input_file, system_message, dataset_fn, chunk_size=1, skip_if_exist=True, for_training=True):
+    def prepare(self, input_file, system_message, dataset_fn, chunk_size=1, skip_if_exist=True, for_training=True, format='openai'):
         if skip_if_exist and os.path.exists(dataset_fn):
             logger.debug(f"Dataset {dataset_fn} already exists, skip.")
             return
         essay_list = Essay.load_essays_from_file(input_file)
         dataset = []
         for chunk in self.divide_chunks(essay_list, chunk_size):
-            record = self.convert_essay_to_dataset(chunk, system_message, for_training)
+            if format == 'openai':
+                record = self.convert_essay_to_dataset_openai(chunk, system_message, for_training)
+            elif format == 'gemini':
+                record = self.convert_essay_to_dataset_gemini(chunk, system_message)
             dataset.append(record)
         save_to_jsonl(dataset, dataset_fn)
 
         # Initial dataset stats
-        logger.info(f"Num of records: [{len(dataset)}] in [{dataset_fn}]")
-        format_errors = self.format_check(dataset, for_training=for_training)
-        if format_errors:
-            logger.error(f"Found errors: {format_errors}")
-            return
+        logger.info(f"Num of records: [{len(dataset)}] in {dataset_fn}")
+        # format_errors = self.format_check(dataset, for_training=for_training)
+        # if format_errors:
+        #     logger.error(f"Found errors: {format_errors}")
+        #     return
 
         # print_stats(dataset)
 
     @classmethod
-    def convert_essay_to_dataset(cls, essays: list[Essay], system_message=None, for_training=True) -> dict:
+    def convert_essay_to_dataset_openai(cls, essays: list[Essay], system_message=None, for_training=True) -> dict:
         # Initializing the messages list
         messages = []
 
@@ -213,6 +238,26 @@ class DatasetPreparation:
             }
             return output_dict
 
+    @classmethod
+    def convert_essay_to_dataset_gemini(cls, essays: list[Essay], system_message=None) -> dict:
+        # Initializing the messages list
+        messages = []
+
+        # Iterating through the lines and formatting the messages
+        for essay in essays:
+            # Formatting the message
+            message = {
+                "parts": [{"text": cls.prompt_formatter_full(essay, system_message=system_message)}]
+            }
+            messages.append(message)
+            
+        # Creating the final output dictionary
+        output_dict = {
+            "contents": messages,
+            "metadata": { "essay": essay.to_dict()},
+        }
+        return output_dict
+        
     @staticmethod
     def prompt_formatter_short(essay: Essay):
         return f"""Essay prompt: `{essay.prompt_text}`
@@ -283,14 +328,17 @@ class ResponseParser:
 
     def run(self, skip_if_exist=True):
         for dp in self.config.data_paths:
+            if not dp.active:
+                continue
             self.parse_response(
                 input_file=dp.dataset_out,
                 output_file=dp.result_file,
                 integer_score_only=self.config.integer_score_only,
+                format=dp.format,
                 skip_if_exist=skip_if_exist,
             )
             
-    def parse_response(self, input_file, output_file, integer_score_only, skip_if_exist=True):
+    def parse_response(self, input_file, output_file, integer_score_only, format='openai', skip_if_exist=True):
         if not os.path.exists(input_file):
             logger.error(f"Input file {input_file} does not exist.")
             return
@@ -301,23 +349,19 @@ class ResponseParser:
         with open(input_file, 'r') as file:
             for line in file:
                 json_data = json.loads(line)
-                for message in json_data[0]["messages"]:
-                    if message["role"] == "user":
-                        gpt_prompt = message["content"]
-                        break
-                raw_response = json_data[1]["choices"][0]["message"]["content"]
+                llm_prompt, raw_response = self.extract_prompt_and_raw_response(json_data, format)
                 res = self.parse_raw_response(raw_response)
                 essay_data = json_data[2]["essay"]
                 agreement = calc_agreement(
                     ground_truth_score=essay_data["ETS Score"],
-                    gpt_score=res["score"],
+                    llm_score=res["score"],
                     integer_score_only=integer_score_only,
                     )
                 row_data = {
                     **agreement,
-                    "GPT Score": res["score"],
+                    "LLM Score": res["score"],
                     **essay_data,
-                    "gpt_prompt": gpt_prompt,
+                    "llm_prompt": llm_prompt,
                     "raw_response": raw_response,
                     "reasoning": res["reasoning"],
                 }
@@ -325,6 +369,21 @@ class ResponseParser:
         df = pd.DataFrame(rows)
         write_data(df, output_file)
         logger.info(f"Parsed result saved to file: {output_file}")
+    
+    @classmethod
+    def extract_prompt_and_raw_response(cls, json_data, format):
+        raw_response = ''
+        llm_prompt = ''
+        if format == 'openai':
+            for message in json_data[0]["messages"]:
+                if message["role"] == "user":
+                    llm_prompt = message["content"]
+                    break
+            raw_response = json_data[1]["choices"][0]["message"]["content"]
+        elif format == 'gemini':
+            llm_prompt = json_data[0]["contents"][0]["parts"][0]["text"]
+            raw_response = json_data[1]["candidates"][0]["content"]["parts"][0]["text"]
+        return llm_prompt, raw_response
     
     @classmethod
     def parse_raw_response(cls, raw_response):
