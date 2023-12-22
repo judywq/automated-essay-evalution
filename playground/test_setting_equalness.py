@@ -25,7 +25,7 @@ def main():
         'integer_score_only',
         'global_run_id',
         'model_suffix',
-        'test_result_prefix',
+        'finetuned_prefix',
         'index_file_path_template',
         'output_root',
         'test_result_finetuned_filename',

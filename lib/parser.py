@@ -146,7 +146,7 @@ The essay is: `{essay.text}`
                     "essay_item_id": essay.item_id,
                     "essay_prompt": essay.prompt,
                     "essay": essay.text,
-                    "gpt_prompt": prompt["user_content"],
+                    "llm_prompt": prompt["user_content"],
                     "raw_response": response,
                 },
             }
@@ -188,9 +188,9 @@ The essay is: `{essay.text}`
             if "reasoning" not in obj:
                 logger.warning(f"Cannot find 'reasoning' in response: {obj}")
 
-            gpt_score = obj.get("score", -1)
+            llm_score = obj.get("score", -1)
             agreement = calc_agreement(
-                ground_truth_score=essay.score, gpt_score=gpt_score
+                ground_truth_score=essay.score, llm_score=llm_score
             )
 
             return {
@@ -198,14 +198,14 @@ The essay is: `{essay.text}`
                 "result": {
                     **agreement,
                     "ETS Score": essay.score,
-                    "GPT Score": gpt_score,
+                    "LLM Score": llm_score,
                     "reasoning": obj.get("reasoning", ""),
                     "filename": essay.fn,
                     "essay_form_id": essay.form_id,
                     "essay_item_id": essay.item_id,
                     "essay_prompt": essay.prompt_text,
                     "essay": essay.text,
-                    "gpt_prompt": prompt["user_content"],
+                    "llm_prompt": prompt["user_content"],
                     "raw_response": response,
                 },
             }
@@ -236,18 +236,18 @@ class EssayEvaluationWithTunedModelParser(ParserBase):
         res = super().parse_response(prompt=prompt, response=response)
         essay: Essay = self.inputs["essay"]
         try:
-            gpt_score = float(response)
+            llm_score = float(response)
         except ValueError:
-            gpt_score = -1
+            llm_score = -1
 
-        agreement = calc_agreement(ground_truth_score=essay.score, gpt_score=gpt_score)
+        agreement = calc_agreement(ground_truth_score=essay.score, llm_score=llm_score)
 
         return {
             **res,
             "result": {
                 **agreement,
                 "ETS Score": essay.score,
-                "GPT Score": gpt_score,
+                "LLM Score": llm_score,
                 "filename": essay.fn,
                 "essay_form_id": essay.form_id,
                 "essay_item_id": essay.item_id,

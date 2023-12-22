@@ -107,7 +107,7 @@ from dataclasses import (
 )  # for storing API inputs, outputs, and metadata
 
 
-async def process_api_requests_from_file(
+async def process_api_requests_from_file_openai(
     requests_filepath: str,
     save_filepath: str,
     request_url: str,
@@ -479,7 +479,7 @@ if __name__ == "__main__":
 
     # run script
     asyncio.run(
-        process_api_requests_from_file(
+        process_api_requests_from_file_openai(
             requests_filepath=args.requests_filepath,
             save_filepath=args.save_filepath,
             request_url=args.request_url,

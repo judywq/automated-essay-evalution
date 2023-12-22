@@ -39,7 +39,7 @@ config_list_base_float_only = [
 
 variations = [
     (config_unit_20231202, config_list_base),
-    # (config_unit_20231203, config_list_base),
+    (config_unit_20231203, config_list_base),
     # (config_unit_20231208, config_list_base_float_only),
 ]
 
