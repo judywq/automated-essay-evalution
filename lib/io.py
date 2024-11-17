@@ -18,6 +18,8 @@ def read_json(file_path):
     return data
 
 def save_to_json(data: dict, file_path, indent=4):
+    if 'error' in data:
+        del data['error']
     path = os.path.dirname(file_path)
     os.makedirs(path, exist_ok=True)
     with open(file_path, 'w') as file:
