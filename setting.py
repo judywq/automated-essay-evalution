@@ -10,9 +10,9 @@ tof_name = train_on_form if train_on_form else 'all'
 integer_score_only = False
 # integer_score_only = True
 
-global_run_id = f'2023-12-02-fixed-data-length-ToF[{tof_name}]-IntOnly[{integer_score_only}]'
+global_run_id = f'2024-11-17-fixed-data-length-ToF[{tof_name}]-IntOnly[{integer_score_only}]'
 model_suffix = 'eassy-all'
-finetuned_prefix = 'finetuned-gpt-3.5'
+finetuned_prefix = 'finetuned-gpt-4o'
 
 
 DEFAULT_LOG_LEVEL = "INFO"
@@ -21,8 +21,10 @@ DEFAULT_LOG_LEVEL = "INFO"
 official_model_gpt_3_5_turbo = 'gpt-3.5-turbo'
 official_model_gpt_4 = 'gpt-4'
 official_model_gpt_4_turbo = 'gpt-4-1106-preview'
-DEFAULT_MODEL = official_model_gpt_3_5_turbo
-DEFAULT_MODEL = official_model_gpt_4_turbo
+official_model_gpt_4o = 'gpt-4o-2024-08-06'
+# DEFAULT_MODEL = official_model_gpt_3_5_turbo
+# DEFAULT_MODEL = official_model_gpt_4_turbo
+DEFAULT_MODEL = official_model_gpt_4o
 
 REQUEST_TIMEOUT_SECS = 60
 
@@ -48,7 +50,7 @@ job_id_filename = os.path.join(output_root, 'ids', f'job-id.json')
 test_result_finetuned_filename = os.path.join(output_root, 'results', f'test-result-{finetuned_prefix}-{date_str}.xlsx')
 test_result_official_filename = os.path.join(output_root, 'results', f'test-result-{DEFAULT_MODEL}-{date_str}.xlsx')
 
-fine_tuning_base_model_id = 'gpt-3.5-turbo-1106'
+# fine_tuning_base_model_id = 'gpt-3.5-turbo-1106'
 # base_model_id = 'ft:gpt-3.5-turbo-0613:waseda-university:eassy-test-2:8CTA9Ik1'
 
 # The column names in the input data

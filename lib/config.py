@@ -64,27 +64,29 @@ class MyConfig(JsonConfigLoader):
     def load_data_paths(self):
         try:
             data_paths = []
-            for model in self.get_baseline_models():
-                model_id = model.id
-                model_label = model.label
-                data_paths.append(DataPath(
-                    index_file=self.index_test_filename,
-                    dataset_in=self.get_dataset_test_input_filename(model_id),
-                    dataset_out=self.get_dataset_test_output_filename(model_id),
-                    result_file=self.get_test_result_filename(model_id),
-                    llm_model_label=model_label,
-                    llm_model_id=model_id,
-                    format=model.format,
-                    is_finetuned=False,
-                    active=model.active,
-                ))
+            if self.run_baseline:
+                for model in self.get_baseline_models():
+                    model_id = model.id
+                    model_label = model.label
+                    data_paths.append(DataPath(
+                        index_file=self.index_test_filename,
+                        dataset_in=self.get_dataset_test_input_filename(model_id),
+                        dataset_out=self.get_dataset_test_output_filename(model_id),
+                        result_file=self.get_test_result_filename(model_id),
+                        llm_model_label=model_label,
+                        llm_model_id=model_id,
+                        format=model.format,
+                        is_finetuned=False,
+                        active=model.active,
+                    ))
             # Finetuned model
             data_paths.append(DataPath(
                 index_file=self.index_test_filename,
                 dataset_in=os.path.join(self.output_root, 'dataset', 'test.short.jsonl'),
                 dataset_out=os.path.join(self.output_root, 'dataset', f'test.short.result.{self.finetuned_prefix}.jsonl'),
                 result_file=os.path.join(self.output_root, 'results', f'test-result-{self.finetuned_prefix}.xlsx'),
-                llm_model_label="finetuned-gpt-3.5",
+                # llm_model_label="finetuned-gpt-3.5",
+                llm_model_label=self.finetuned_prefix,
                 is_finetuned=True,
                 active=self.run_finetuned,
             ))

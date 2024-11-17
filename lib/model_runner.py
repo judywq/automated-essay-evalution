@@ -12,7 +12,7 @@ class ModelRunner:
         self.config = config
         
     def run(self, skip_if_exists=True):
-        # self._run_openai_finetuned(skip_if_exists=skip_if_exists)
+        self._run_openai_finetuned(skip_if_exists=skip_if_exists)
         self._run_baseline_models(skip_if_exists=skip_if_exists)
 
     def _run_openai_finetuned(self, skip_if_exists=True):
@@ -39,6 +39,8 @@ class ModelRunner:
 
 
     def _run_baseline_models(self, skip_if_exists=True):
+        if not self.config.run_baseline:
+            return
         for data_path in self.config.data_paths:
             if not data_path.active or data_path.is_finetuned:
                 continue

@@ -3,6 +3,7 @@
   "integer_score_only": false,
   "run_prefix": "2023-01-01-NONE",
   "model_suffix": "eassy-eval",
+  "run_baseline": true,
   "run_finetuned": false,
   "finetuned_prefix": "finetuned-gpt-3.5",
   "DEFAULT_LOG_LEVEL": "INFO",
@@ -24,6 +25,11 @@
       "id": "gemini-pro",
       "label": "gemini",
       "format": "gemini"
+    },
+    {
+      "id": "gpt-4o-2024-08-06",
+      "label": "gpt-4o",
+      "format": "openai"
     }
   ],
   "temperature": 0,

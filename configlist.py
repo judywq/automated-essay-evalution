@@ -10,10 +10,12 @@ config_unit_int = "./configs/config.type.int.json"
 config_unit_float = "./configs/config.type.float.json"
 config_unit_gpt_3_5_turbo = "./configs/config.gpt3.5-turbo.json"
 config_unit_gpt_4_turbo = "./configs/config.gpt4-turbo.json"
+config_unit_gpt_4o = "./configs/config.gpt4o.json"
 
 config_unit_20231202 = "./configs/config.20231202.json"
 config_unit_20231203 = "./configs/config.20231203.json"
 config_unit_20231208 = "./configs/config.20231208.json"
+config_unit_20241117 = "./configs/config.20241117.json"
 
 config_set_fa_float = [config_unit_base, config_unit_form_all, config_unit_float]
 config_set_f1_float = [config_unit_base, config_unit_form_1, config_unit_float]
@@ -38,9 +40,10 @@ config_list_base_float_only = [
 ]
 
 variations = [
-    (config_unit_20231202, config_list_base),
-    (config_unit_20231203, config_list_base),
+    # (config_unit_20231202, config_list_base),
+    # (config_unit_20231203, config_list_base),
     # (config_unit_20231208, config_list_base_float_only),
+    (config_unit_20241117, config_list_base),
 ]
 
 config_list = []

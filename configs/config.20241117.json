@@ -1,0 +1,7 @@
+{
+  "run_baseline": false,
+  "run_finetuned": true,
+  "run_prefix": "2024-11-17-gpt4o",
+  "finetuned_prefix": "finetuned-gpt-4o",
+  "fine_tuning_base_model_id": "gpt-4o-2024-08-06"
+}
