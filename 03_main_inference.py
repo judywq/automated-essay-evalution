@@ -5,7 +5,7 @@ from lib.config import MyConfig
 from configlist import config_list
 
 skip_if_exist = True
-skip_if_exist = False
+# skip_if_exist = False
 
 def main():
     for config_files in config_list:
@@ -16,7 +16,7 @@ def main():
         
         parser = ResponseParser(config=config)
         parser.run(skip_if_exist=skip_if_exist)
-        break
+        # break
 
 
 if __name__ == "__main__":
