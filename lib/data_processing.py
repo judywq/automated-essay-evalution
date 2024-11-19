@@ -75,11 +75,11 @@ class DataSplitter:
             df (pd.DataFrame): input data
             train_on_form (int, optional): train only on form N. Default (None) means both .
         """
-        filter_integer = self.config.integer_score_only
+        integer_score_only = self.config.integer_score_only
         df_copy = df.copy()
-        df_train = self.sample(df_copy, num_per_group=self.config.num_per_group["train"], filter_form=train_on_form, filter_integer=filter_integer)
+        df_train = self.sample(df_copy, num_per_group=self.config.num_per_group["train"], filter_form=train_on_form, integer_score_only=integer_score_only)
         df_copy.drop(df_train.index, inplace=True)
-        df_val = self.sample(df_copy, num_per_group=self.config.num_per_group["val"], filter_form=train_on_form, filter_integer=filter_integer)
+        df_val = self.sample(df_copy, num_per_group=self.config.num_per_group["val"], filter_form=train_on_form, integer_score_only=integer_score_only)
         df_copy.drop(df_val.index, inplace=True)
         df_test = self.sample(df_copy, num_per_group=self.config.num_per_group["test"])
 
@@ -91,9 +91,9 @@ class DataSplitter:
         print("Val shape:", df_val.shape)
         print("Test shape:", df_test.shape)
     
-    def sample(self, df: pd.DataFrame, num_per_group=-1, filter_form=None, filter_integer=False) -> pd.DataFrame:
+    def sample(self, df: pd.DataFrame, num_per_group=-1, filter_form=None, integer_score_only=False) -> pd.DataFrame:
         
-        if filter_integer:
+        if integer_score_only:
             df = df[df[self.config.column_score] % 1 == 0].copy()
 
         if filter_form:
