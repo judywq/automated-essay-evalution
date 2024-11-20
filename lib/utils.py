@@ -87,6 +87,9 @@ def calc_metrics_dict(result_fn, integers_only) -> dict:
     def get_metrics(metric_func, df, filter_form=None):
         if filter_form:
             df = df[df['essay_form_id'] == filter_form]
+        
+        if df.empty:
+            return "-"
         actual_values = df['ETS Score']
         if 'LLM Score' in df.columns:
             predicted_values = df['LLM Score']
