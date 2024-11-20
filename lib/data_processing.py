@@ -1,4 +1,5 @@
 import os
+import math
 import re
 import json
 from collections import defaultdict
@@ -23,7 +24,13 @@ class DataSplitter:
             print("Data splits already exist, skip.")
             return
         df = self.read_all_data()
-        self.split_data(df, train_on_form=self.config.train_on_form)
+        if self.config.split_algorithm == 1:
+            self.split_data_1(df, train_on_form=self.config.train_on_form)
+        elif self.config.split_algorithm == 2:
+            self.split_data_2(df, train_on_form=self.config.train_on_form)
+        else:
+            raise Exception(f"Invalid split algorithm: {self.config.split_algorithm}, please check your config file.")
+            
         print("Data splitting done!")
         
     
@@ -59,6 +66,8 @@ class DataSplitter:
         return df
     
     def calc_max_num_per_group(self, df1, df2):
+        """ Calculate the maximum number of samples we could take for each score group"""
+        
         value_counts_dict_df1 = df1[self.config.column_score].value_counts().to_dict()
         value_counts_dict_df2 = df2[self.config.column_score].value_counts().to_dict()
 
@@ -66,9 +75,9 @@ class DataSplitter:
         self.max_num_per_group = {key: min(value_counts_dict_df1.get(key, 0), value_counts_dict_df2.get(key, 0))
                         for key in set(value_counts_dict_df1) | set(value_counts_dict_df2)}
         
-        logger.debug(f"Max num per group: {self.max_num_per_group}")
+        logger.info(f"Max num per group: {self.max_num_per_group}")
 
-    def split_data(self, df, train_on_form=None):
+    def split_data_1(self, df, train_on_form=None):
         """Split data into train/val/test sets
 
         Args:
@@ -77,22 +86,19 @@ class DataSplitter:
         """
         integer_score_only = self.config.integer_score_only
         df_copy = df.copy()
-        df_train = self.sample(df_copy, num_per_group=self.config.num_per_group["train"], filter_form=train_on_form, integer_score_only=integer_score_only)
+        df_train = self.sample_1(df_copy, num_per_group=self.config.num_per_group["train"], filter_form=train_on_form, integer_score_only=integer_score_only)
         df_copy.drop(df_train.index, inplace=True)
-        df_val = self.sample(df_copy, num_per_group=self.config.num_per_group["val"], filter_form=train_on_form, integer_score_only=integer_score_only)
+        df_val = self.sample_1(df_copy, num_per_group=self.config.num_per_group["val"], filter_form=train_on_form, integer_score_only=integer_score_only)
         df_copy.drop(df_val.index, inplace=True)
-        df_test = self.sample(df_copy, num_per_group=self.config.num_per_group["test"])
+        df_test = self.sample_1(df_copy, num_per_group=self.config.num_per_group["test"])
+        
+        self.print_distribution(df_train, df_val, df_test)
 
         write_data(df_train, self.config.index_train_filename)
         write_data(df_test, self.config.index_test_filename)
         write_data(df_val, self.config.index_val_filename)
-        
-        print("Train shape:", df_train.shape)
-        print("Val shape:", df_val.shape)
-        print("Test shape:", df_test.shape)
     
-    def sample(self, df: pd.DataFrame, num_per_group=-1, filter_form=None, integer_score_only=False) -> pd.DataFrame:
-        
+    def sample_1(self, df: pd.DataFrame, num_per_group=-1, filter_form=None, integer_score_only=False) -> pd.DataFrame:
         if integer_score_only:
             df = df[df[self.config.column_score] % 1 == 0].copy()
 
@@ -105,6 +111,97 @@ class DataSplitter:
         sampled_data = pd.concat([group.sample(min(num_per_group, self.max_num_per_group[key], len(group))) 
                                   for key, group in df.groupby(self.config.column_score)])
         return sampled_data
+
+    def split_data_2(self, df, train_on_form=None):
+        """Split data into train/val/test sets
+            1. prompt1全部拿来做training/val(9:1)，prompt2做testing。
+            2. prompt2全部拿来做training，prompt1全部拿来做testing。
+            3. prompt1/2选100篇左右做testing，剩下全部做training（但要保证training里面有分数是1的文章）。
+                1. Trainging+val / testing = 38:10
+                2. training / val = 9:1       
+
+        Args:
+            df (pd.DataFrame): input data
+            train_on_form (int, optional): train only on form N. Default (None) means both .
+        """
+        integer_score_only = self.config.integer_score_only
+        df_copy = df.copy()
+        
+        if train_on_form:
+            train_frac = 0.9
+            val_frac = -1
+            test_frac = -1
+        else:
+            train_val_frac = 38 / (38 + 10)
+            train_frac = 0.9 * train_val_frac
+            val_frac = 0.1 * train_val_frac
+            test_frac = -1
+        
+        df_train = self.sample_2(df_copy, frac=train_frac, filter_form=train_on_form, integer_score_only=integer_score_only)
+        df_copy.drop(df_train.index, inplace=True)
+        # For validation set: take all remaining samples in the train_on_form group
+        df_val = self.sample_2(df_copy, frac=val_frac, filter_form=train_on_form, integer_score_only=integer_score_only)
+        df_copy.drop(df_val.index, inplace=True)
+        df_test = self.sample_2(df_copy, frac=test_frac) # take all remaining samples
+        
+        self.print_distribution(df_train, df_val, df_test)
+
+        write_data(df_train, self.config.index_train_filename)
+        write_data(df_test, self.config.index_test_filename)
+        write_data(df_val, self.config.index_val_filename)
+        
+    
+    def sample_2(self, df: pd.DataFrame, frac=-1, filter_form=None, integer_score_only=False) -> pd.DataFrame:
+        if integer_score_only:
+            df = df[df[self.config.column_score] % 1 == 0].copy()
+
+        if filter_form:
+            df = df[df[self.config.column_form] == filter_form]
+        
+        if frac < 0:
+            return df
+            
+        def calc_n_samples(frac, n):
+            val = math.ceil(n * frac)
+            if filter_form:
+                if val == 0:
+                    val = n
+                elif val >= 2 and n - val <= 0:
+                    val = n - 1
+            else:
+                # HACK: special care to make the distribution more balanced
+                if n == 3:
+                    val = 1
+                if n == 2:
+                    val = 1
+                if n == 5:
+                    val = 3
+            return val        
+
+        sampled_data = pd.concat([group.sample(calc_n_samples(frac, len(group))) 
+                                  for key, group in df.groupby(self.config.column_score)])
+        return sampled_data
+
+    def print_distribution(self, df_train, df_val, df_test):
+        # Get the unique score values across all DataFrames
+        all_scores = pd.concat([df_train[self.config.column_score], df_val[self.config.column_score], df_test[self.config.column_score]]).unique()
+        all_scores = sorted(all_scores)
+
+        # Create a DataFrame to hold the counts
+        counts = pd.DataFrame({'SCORE': all_scores})
+
+        # Count occurrences in each DataFrame
+        counts['Train'] = counts['SCORE'].map(df_train[self.config.column_score].value_counts()).fillna(0).astype(int)
+        counts['Val'] = counts['SCORE'].map(df_val[self.config.column_score].value_counts()).fillna(0).astype(int)
+        counts['Test'] = counts['SCORE'].map(df_test[self.config.column_score].value_counts()).fillna(0).astype(int)
+
+        # Add a sum row
+        sum_row = counts[['Train', 'Val', 'Test']].sum().to_frame().T
+        sum_row.insert(0, 'SCORE', 'Sum')  # Insert a 'Sum' label in the SCORE column
+        counts = pd.concat([counts, sum_row], ignore_index=True)  # Concatenate the sum row to the DataFrame
+        
+        print(counts)
+        write_data(counts, self.config.dataset_distribution_filename, index=False)
 
 
 class DatasetPreparation:

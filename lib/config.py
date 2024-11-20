@@ -120,6 +120,10 @@ class MyConfig(JsonConfigLoader):
         return os.path.join(self.output_root, 'index', 'score_distribution.csv')
     
     @property
+    def dataset_distribution_filename(self):
+        return os.path.join(self.output_root, 'index', 'dataset_dist.csv')
+    
+    @property
     def index_test_filename(self):
         return os.path.join(self.output_root, 'index', 'test.csv')
     

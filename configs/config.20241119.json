@@ -1,7 +1,8 @@
 {
   "run_baseline": false,
   "run_finetuned": true,
-  "run_prefix": "2024-11-17-gpt4o-test",
-  "finetuned_prefix": "finetuned-gpt-4o",
+  "split_algorithm": 2,
+  "run_prefix": "2024-11-19-gpt4o-new-split",
+  "finetuned_prefix": "ft-gpt-4o",
   "fine_tuning_base_model_id": "gpt-4o-2024-08-06"
 }

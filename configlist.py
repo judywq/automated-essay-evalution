@@ -16,6 +16,7 @@ config_unit_20231202 = "./configs/config.20231202.json"
 config_unit_20231203 = "./configs/config.20231203.json"
 config_unit_20231208 = "./configs/config.20231208.json"
 config_unit_20241117 = "./configs/config.20241117.json"
+config_unit_20241119 = "./configs/config.20241119.json"
 
 config_set_fa_float = [config_unit_base, config_unit_form_all, config_unit_float]
 config_set_f1_float = [config_unit_base, config_unit_form_1, config_unit_float]
@@ -43,7 +44,8 @@ variations = [
     # (config_unit_20231202, config_list_base),
     # (config_unit_20231203, config_list_base),
     # (config_unit_20231208, config_list_base_float_only),
-    (config_unit_20241117, config_list_base),
+    # (config_unit_20241117, config_list_base),
+    (config_unit_20241119, config_list_base_float_only),
 ]
 
 config_list = []

@@ -5,6 +5,7 @@
   "model_suffix": "eassy-eval",
   "run_baseline": true,
   "run_finetuned": false,
+  "split_algorithm": 1,
   "finetuned_prefix": "finetuned-gpt-3.5",
   "DEFAULT_LOG_LEVEL": "INFO",
   "baseline_models": [
