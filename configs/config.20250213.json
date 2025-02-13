@@ -1,0 +1,8 @@
+{
+  "run_baseline": false,
+  "run_finetuned": false,
+  "split_algorithm": 3,
+  "run_prefix": "2025-02-13-train-val-only",
+  "finetuned_prefix": "ft-gpt-4o",
+  "fine_tuning_base_model_id": "gpt-4o-2024-08-06"
+}

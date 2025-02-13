@@ -24,10 +24,13 @@ class DataSplitter:
             print("Data splits already exist, skip.")
             return
         df = self.read_all_data()
+        logger.info(f"Total number of samples: {df.shape[0]}")
         if self.config.split_algorithm == 1:
             self.split_data_1(df, train_on_form=self.config.train_on_form)
         elif self.config.split_algorithm == 2:
             self.split_data_2(df, train_on_form=self.config.train_on_form)
+        elif self.config.split_algorithm == 3:
+            self.split_data_3(df, train_on_form=self.config.train_on_form)
         else:
             raise Exception(f"Invalid split algorithm: {self.config.split_algorithm}, please check your config file.")
             
@@ -149,7 +152,6 @@ class DataSplitter:
         write_data(df_train, self.config.index_train_filename)
         write_data(df_test, self.config.index_test_filename)
         write_data(df_val, self.config.index_val_filename)
-        
     
     def sample_2(self, df: pd.DataFrame, frac=-1, filter_form=None, integer_score_only=False) -> pd.DataFrame:
         if integer_score_only:
@@ -182,9 +184,70 @@ class DataSplitter:
                                   for key, group in df.groupby(self.config.column_score)])
         return sampled_data
 
-    def print_distribution(self, df_train, df_val, df_test):
+    def split_data_3(self, df, train_on_form=None):
+        """Split data into train/val/test sets
+            prompt1/2选400篇左右做training，剩下全部做val（但要保证training里面有分数是1的文章）。
+              - Trainging / val = 40:8
+
+        Args:
+            df (pd.DataFrame): input data
+            train_on_form (int, optional): train only on form N. Default (None) means both .
+        """
+        integer_score_only = self.config.integer_score_only
+        df_copy = df.copy()
+        
+        if train_on_form:
+            raise ValueError("train_on_form is not supported for split_algorithm 3")
+        else:
+            train_frac = 400 / 480
+        
+        df_train = self.sample_3(df_copy, frac=train_frac, filter_form=train_on_form, integer_score_only=integer_score_only)
+        df_copy.drop(df_train.index, inplace=True)
+        # For validation set: take all remaining samples
+        df_val = df_copy
+        
+        self.print_distribution(df_train, df_val)
+
+        write_data(df_train, self.config.index_train_filename)
+        write_data(df_val, self.config.index_val_filename)
+        
+    def sample_3(self, df: pd.DataFrame, frac=-1, filter_form=None, integer_score_only=False) -> pd.DataFrame:
+        if integer_score_only:
+            df = df[df[self.config.column_score] % 1 == 0].copy()
+
+        if filter_form:
+            df = df[df[self.config.column_form] == filter_form]
+        
+        if frac < 0:
+            return df
+            
+        def calc_n_samples(frac, n):
+            val = math.ceil(n * frac)
+            if filter_form:
+                if val == 0:
+                    val = n
+                elif val >= 2 and n - val <= 0:
+                    val = n - 1
+            else:
+                # HACK: special care to make the distribution more balanced
+                if n == 3:
+                    val = 1
+                if n == 2:
+                    val = 1
+                if n == 5:
+                    val = 3
+            return val        
+
+        sampled_data = pd.concat([group.sample(calc_n_samples(frac, len(group))) 
+                                  for key, group in df.groupby(self.config.column_score)])
+        return sampled_data
+    
+    def print_distribution(self, df_train, df_val, df_test=None):
         # Get the unique score values across all DataFrames
-        all_scores = pd.concat([df_train[self.config.column_score], df_val[self.config.column_score], df_test[self.config.column_score]]).unique()
+        dfs = [df_train, df_val]
+        if df_test is not None:
+            dfs.append(df_test)
+        all_scores = pd.concat([df[self.config.column_score] for df in dfs]).unique()
         all_scores = sorted(all_scores)
 
         # Create a DataFrame to hold the counts
@@ -193,10 +256,14 @@ class DataSplitter:
         # Count occurrences in each DataFrame
         counts['Train'] = counts['SCORE'].map(df_train[self.config.column_score].value_counts()).fillna(0).astype(int)
         counts['Val'] = counts['SCORE'].map(df_val[self.config.column_score].value_counts()).fillna(0).astype(int)
-        counts['Test'] = counts['SCORE'].map(df_test[self.config.column_score].value_counts()).fillna(0).astype(int)
+        if df_test is not None:
+            counts['Test'] = counts['SCORE'].map(df_test[self.config.column_score].value_counts()).fillna(0).astype(int)
 
         # Add a sum row
-        sum_row = counts[['Train', 'Val', 'Test']].sum().to_frame().T
+        if df_test is not None:
+            sum_row = counts[['Train', 'Val', 'Test']].sum().to_frame().T
+        else:
+            sum_row = counts[['Train', 'Val']].sum().to_frame().T
         sum_row.insert(0, 'SCORE', 'Sum')  # Insert a 'Sum' label in the SCORE column
         counts = pd.concat([counts, sum_row], ignore_index=True)  # Concatenate the sum row to the DataFrame
         
@@ -268,6 +335,9 @@ class DatasetPreparation:
     def prepare(self, input_file, system_message, dataset_fn, chunk_size=1, skip_if_exist=True, for_training=True, format='openai'):
         if skip_if_exist and os.path.exists(dataset_fn):
             logger.debug(f"Dataset {dataset_fn} already exists, skip.")
+            return
+        if not os.path.exists(input_file):
+            logger.warning(f"Input file {input_file} does not exist.")
             return
         essay_list = Essay.load_essays_from_file(input_file)
         dataset = []
