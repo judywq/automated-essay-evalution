@@ -519,7 +519,7 @@ class ResponseParser:
                 llm_prompt, raw_response = self.extract_prompt_and_raw_response(json_data, format)
                 res = self.parse_raw_response(raw_response)
                 essay_data = json_data[2]["essay"]
-                agreement = calc_agreement(
+                agreement = self.calc_agreement(
                     ground_truth_score=essay_data["ETS Score"],
                     llm_score=res["score"],
                     integer_score_only=integer_score_only,
@@ -536,6 +536,13 @@ class ResponseParser:
         df = pd.DataFrame(rows)
         write_data(df, output_file)
         logger.info(f"Parsed result saved to file: {output_file}")
+    
+    def calc_agreement(self, ground_truth_score, llm_score, integer_score_only):
+        return calc_agreement(
+                    ground_truth_score=ground_truth_score,
+                    llm_score=llm_score,
+                    integer_score_only=integer_score_only,
+                    )
     
     @classmethod
     def extract_prompt_and_raw_response(cls, json_data, format):

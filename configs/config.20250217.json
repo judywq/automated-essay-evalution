@@ -1,0 +1,8 @@
+{
+  "run_baseline": false,
+  "run_finetuned": true,
+  "split_algorithm": null,
+  "run_prefix": "2025-02-17-inference-on-new-test-set",
+  "finetuned_prefix": "ft-gpt-4o",
+  "fine_tuning_base_model_id": "gpt-4o-2024-08-06"
+}
