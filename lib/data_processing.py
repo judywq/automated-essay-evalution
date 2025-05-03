@@ -296,8 +296,8 @@ class DatasetPreparation:
         # Test data for openai fine-tuned model
         self.prepare(
             input_file=self.config.index_test_filename,
-            system_message=self.config.system_message_short,
-            dataset_fn=self.config.dataset_test_short_filename,
+            system_message=self.config.system_message_full,
+            dataset_fn=self.config.dataset_test_full_filename,
             skip_if_exist=skip_if_exist,
             for_training=False,
         )

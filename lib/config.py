@@ -153,7 +153,7 @@ class MyConfig(JsonConfigLoader):
         # return input_fn.replace('.jsonl', f'.result.{model_id}.jsonl')
     
     def get_dataset_test_result_finetuned_filename(self):
-        input_fn = self.dataset_test_short_filename
+        input_fn = self.dataset_test_full_filename
         return input_fn.replace('.jsonl', f'.result.{self.finetuned_prefix}.jsonl')
     
     @property

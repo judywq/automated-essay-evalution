@@ -22,7 +22,7 @@ class ModelRunner:
         job = finetuner.try_load_job()
         if job and job['status'] == 'succeeded':
             fine_tuned_model = job['fine_tuned_model']
-            input_fn = self.config.dataset_test_short_filename
+            input_fn = self.config.dataset_test_full_filename
             output_fn = self.config.get_dataset_test_result_finetuned_filename()
             
             if skip_if_exists and os.path.exists(output_fn):
